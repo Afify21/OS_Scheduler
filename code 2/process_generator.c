@@ -2,7 +2,7 @@
 
 void clearResources(int);
 
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
     signal(SIGINT, clearResources);
     // TODO Initialization
@@ -23,5 +23,5 @@ int main(int argc, char * argv[])
 
 void clearResources(int signum)
 {
-    int x;
+    // TODO Clears all resources in case of interruption
 }
