@@ -33,5 +33,8 @@ int main(int argc, char * argv[])
         pData.priority = rand() % (11);
         fprintf(pFile, "%d\t%d\t%d\t%d\n", pData.id, pData.arrivaltime, pData.runningtime, pData.priority);
     }
+
+    
+
     fclose(pFile);
 }

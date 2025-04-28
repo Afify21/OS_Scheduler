@@ -57,6 +57,25 @@ void initClk()
  *                      It terminates the whole system and releases resources.
 */
 
+int getNoOfProcessesFromInput(FILE* F)
+{
+    int charc;
+    int Processes=0;
+
+    while((charc=getc(F))!=EOF)
+    {
+        if ( charc=='\n')
+        {
+            Processes++;
+        }
+       
+    }
+
+    fseek(F,0,SEEK_SET);//return pointer to start
+    return Processes;
+}
+
+
 void destroyClk(bool terminateAll)
 {
     shmdt(shmaddr);

@@ -4,9 +4,30 @@ void clearResources(int);
 
 int main(int argc, char *argv[])
 {
+
+    int NumberOfP;
+
     signal(SIGINT, clearResources);
     // TODO Initialization
     // 1. Read the input files.
+
+    FILE *F=fopen(argv[1],"r");
+
+    if(!F)
+    {
+        perror("Cant Open File");
+        return -1;
+    }
+    else
+    {
+        NumberOfP=getNoOfProcessesFromInput(F);
+    }
+
+
+
+
+
+
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
     // 3. Initiate and create the scheduler and clock processes.
     // 4. Use this function after creating the clock process to initialize clock
@@ -16,10 +37,6 @@ int main(int argc, char *argv[])
     printf("current time is %d\n", x);
     // TODO Generation Main Loop
     // 5. Create a data structure for processes and provide it with its parameters.
-    // test // 6. Send the information to the scheduler at the appropriate time.
-    // nice // 7. Clear clock resources
-    int z;
-    int y;
     // 6. Send the information to the scheduler at the appropriate time.
     // 7. Clear clock resources
     destroyClk(true);
