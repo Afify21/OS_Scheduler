@@ -16,6 +16,8 @@ int main(int argc, char *argv[])
     printf("current time is %d\n", x);
     // TODO Generation Main Loop
     // 5. Create a data structure for processes and provide it with its parameters.
+    int z;
+    int y;
     // 6. Send the information to the scheduler at the appropriate time.
     // 7. Clear clock resources
     destroyClk(true);
