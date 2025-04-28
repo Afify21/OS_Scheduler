@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-    // 1. Validate we got exactly one runtime argument from the scheduler
+    // Validate we got exactly one runtime argument from the scheduler
     if (argc != 2)
     {
         perror("Invalid number of arguments");
