@@ -2,6 +2,8 @@
 
 void clearResources(int);
 void chooseAlgorithm(void);
+void createSchedulerAndClock(void);
+void sendInfo(void);
 
 int main(int argc, char *argv[])
 {
@@ -20,8 +22,6 @@ int main(int argc, char *argv[])
     // 5. Create a data structure for processes and provide it with its parameters.
     // test // 6. Send the information to the scheduler at the appropriate time.
     // nice // 7. Clear clock resources
-    int z;
-    int y;
     // 6. Send the information to the scheduler at the appropriate time.
     // 7. Clear clock resources
     destroyClk(true);
@@ -31,6 +31,7 @@ void clearResources(int signum)
 {
     // TODO Clears all resources in case of interruption
 }
+
 void chooseAlgorithm(void)
 {
     int algoChoice;
@@ -61,4 +62,10 @@ void chooseAlgorithm(void)
         printf("Invalid choice. Exiting.\n");
         exit(1);
     }
+}
+void createSchedulerandClock(void){
+
+}
+void sendInfo(void){
+    
 }
