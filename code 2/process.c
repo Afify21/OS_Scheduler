@@ -7,7 +7,7 @@
 
 int main(int argc, char *argv[])
 {
-    // 1. Validate we got exactly one runtime argument from the scheduler
+    // Validate we got exactly one runtime argument from the scheduler
     if (argc != 2)
     {
         perror("Invalid number of arguments");
@@ -72,4 +72,4 @@ int main(int argc, char *argv[])
     // We’re done—detach from the clock service and exit
     destroyClk(false);
     return 0;
-}
+} // trem
