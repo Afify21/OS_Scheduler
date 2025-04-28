@@ -29,8 +29,9 @@ int main(int argc, char *argv[])
         currentClock = getClk();
         // Wait (block) until scheduler sends a message with mtype == our PID
         struct msgbuff turn;
-        int received = msgrcv(SendQueueID, &turn, sizeof(turn.msg), getpid(), 0);
-        if (received != -1) // indicates an error(so if not error minus ya basha)
+        // zero el fl msg recieve bt block (wait )l7d ma a recieve sth from the scheduler
+        int received = msgrcv(SendQueueID, &turn, sizeof(turn.msg), getpid(), 0); // returns the number of bytes
+        if (received != -1)                                                       // indicates an error(so if not error minus ya basha)
         {
             // We got the “go” for one tick
             remainingTime--;
