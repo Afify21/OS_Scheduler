@@ -72,4 +72,4 @@ int main(int argc, char *argv[])
     // We’re done—detach from the clock service and exit
     destroyClk(false);
     return 0;
-}
+} // trem
