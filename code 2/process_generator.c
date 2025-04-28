@@ -24,4 +24,5 @@ int main(int argc, char * argv[])
 void clearResources(int signum)
 {
     int x;
+    int ahmed;
 }
