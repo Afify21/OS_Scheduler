@@ -2,7 +2,7 @@
 
 void clearResources(int);
 
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
     signal(SIGINT, clearResources);
     // TODO Initialization
@@ -16,6 +16,10 @@ int main(int argc, char * argv[])
     printf("current time is %d\n", x);
     // TODO Generation Main Loop
     // 5. Create a data structure for processes and provide it with its parameters.
+    // test // 6. Send the information to the scheduler at the appropriate time.
+    // nice // 7. Clear clock resources
+    int z;
+    int y;
     // 6. Send the information to the scheduler at the appropriate time.
     // 7. Clear clock resources
     destroyClk(true);
@@ -23,6 +27,5 @@ int main(int argc, char * argv[])
 
 void clearResources(int signum)
 {
-    int x;
-    int ahmed;
+    // TODO Clears all resources in case of interruption
 }
