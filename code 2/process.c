@@ -15,39 +15,60 @@ int main(int argc, char *argv[])
     }
     // Attach to the simulated clock
     initClk();
+
     // Prepare our two message-queue handles
     int SendQueueID, ReceiveQueueID;
-    DefineKeysProcess(&SendQueueID, &ReceiveQueueID); // calls message get twice
+    DefineKeysProcess(&SendQueueID, &ReceiveQueueID); // calls msgget() twice
     // SendQueueID:   scheduler → process “here’s your turn”
     // ReceiveQueueID: process → scheduler “here’s my remaining time”
+
     // Initialize our remaining-time counter
     int remainingTime = atoi(argv[1]);
     int currentClock = getClk();
+
     // Main loop run until we’ve used up all our ticks
     while (remainingTime > 0)
-    { //  Sync with current clock tick
+    {
+        // Sync with current clock tick
         currentClock = getClk();
+
+        // Use a single buffer for both receiving and sending
+        struct msgbuff buf;
+
         // Wait (block) until scheduler sends a message with mtype == our PID
-        struct msgbuff turn;
-        // zero el fl msg recieve bt block (wait )l7d ma a recieve sth from the scheduler
-        int received = msgrcv(SendQueueID, &turn, sizeof(turn.msg), getpid(), 0); // returns the number of bytes
-        if (received != -1)                                                       // indicates an error(so if not error minus ya basha)
+        // This returns the number of bytes received (or -1 on error)
+        int received = msgrcv(
+            SendQueueID,     // which queue to read from
+            &buf,            // our single buffer
+            sizeof(buf.msg), // only the payload size
+            getpid(),        // filter: mtype must match our PID
+            0                // blocking receive
+        );
+        if (received != -1) // if no error
         {
             // We got the “go” for one tick
             remainingTime--;
         }
-        // Report new remaining time back to scheduler
-        struct msgbuff rem;
-        rem.mtype = getpid();    // so scheduler knows whose update this is
-        rem.msg = remainingTime; // how many ticks left
-        msgsnd(ReceiveQueueID, &rem, sizeof(rem.msg), 0);
+
+        // Prepare the same buffer to report back
+        buf.mtype = getpid();    // so scheduler knows whose update this is
+        buf.msg = remainingTime; // how many ticks left
+
+        // Send the updated remaining time back to scheduler
+        msgsnd(
+            ReceiveQueueID,  // which queue to write to
+            &buf,            // reusing the buffer
+            sizeof(buf.msg), // only the payload size
+            0                // blocking send on error (rare)
+        );
+
         // Busy-wait until the clock advances before looping again
         while (currentClock == getClk())
         {
-            /* just makes sure en there is no incrementation aw decrementation happens kaza mra per
-            1 tick */
+            /* Just ensures no extra loops per tick */
         }
     }
+
     // We’re done—detach from the clock service and exit
     destroyClk(false);
     return 0;
