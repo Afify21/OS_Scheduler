@@ -35,8 +35,7 @@ typedef struct process {
     int turnaroundtime;
     int lasttime;
     int flag;
-    int memsize, memoryused;
-    struct Nodemem *mem;
+    
 } process;
 
 process processList[MAX_PROCESSES];
@@ -98,7 +97,6 @@ void readProcessesFromFile(FILE *f, int processCount) {
 
     while (fgets(line, sizeof(line), f) && i < processCount) {
         int id, arrival, runtime, priority;
-
         if (sscanf(line, "%d\t%d\t%d\t%d", &id, &arrival, &runtime, &priority) == 4) {
             processList[i].id = id;
             processList[i].arrivaltime = arrival;
@@ -114,9 +112,6 @@ void readProcessesFromFile(FILE *f, int processCount) {
             processList[i].finishtime = -1;
             processList[i].lasttime = -1;
             processList[i].flag = 0;
-            processList[i].memsize = 0;
-            processList[i].memoryused = 0;
-            processList[i].mem = NULL;
             printf("Process %d:\t", i);
             printf("%d\t%d\t%d\t%d\n",processList[i].id,processList[i].arrivaltime,processList[i].runningtime,processList[i].priority);
             i++;
