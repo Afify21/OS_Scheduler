@@ -4,6 +4,18 @@
 int main(int argc, char * argv[])
 {
     initClk();
+
+    int AlgoNumber;
+    int QuantumNumber;
+    int ProcessesCount;
+
+    ProcessesCount=atoi(argv[1]);
+    AlgoNumber=atoi(argv[2]);
+    QuantumNumber=atoi(argv[3]);
+
+
+    
+    
     key_t key = ftok("scheduler.c", 123); // Use a unique key
     int SendQueueID = msgget(key, 0666 | IPC_CREAT);
     if (SendQueueID == -1) {
