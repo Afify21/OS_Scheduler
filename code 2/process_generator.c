@@ -4,11 +4,16 @@ void clearResources(int);
 void chooseAlgorithm(void);
 void createSchedulerAndClock(void);
 void sendInfo(void);
+void setUP_CLK_SCHDLR(void);
+
+int NumberOfP;
+int algoChoice;
+int quantum = -1; // default value
+
 
 int main(int argc, char *argv[])
 {
 
-    int NumberOfP;
 
     signal(SIGINT, clearResources);
     // TODO Initialization
@@ -26,14 +31,12 @@ int main(int argc, char *argv[])
         NumberOfP=getNoOfProcessesFromInput(F);
     }
 
-
-
-
-
-
     // 2. Ask the user for the chosen scheduling algorithm and its parameters, if there are any.
    chooseAlgorithm();
     // 3. Initiate and create the scheduler and clock processes.
+
+
+
     // 4. Use this function after creating the clock process to initialize clock
     initClk();
     // To get time use this
@@ -55,8 +58,7 @@ void clearResources(int signum)
 
 void chooseAlgorithm(void)
 {
-    int algoChoice;
-    int quantum = -1; // default value
+
 
     printf("Choose a scheduling algorithm:\n");
     printf("1. HPF (Highest Priority First)\n");
@@ -89,4 +91,43 @@ void createSchedulerandClock(void){
 }
 void sendInfo(void){
     
+}
+
+void setUP_CLK_SCHDLR(void){
+
+    int CLK_ID=fork();
+
+    if(CLK_ID==-1)
+    {
+        perror("Error in intializing clock");
+
+    }else if(CLK_ID==0)
+    {
+        execl("./clk.out","clk.out",NULL);
+        perror("Error in intializing clock");
+        exit(-1);
+    }
+
+    int SCHDLR_ID=fork();
+    if(SCHDLR_ID==-1)
+    {
+        perror("Error in intializing Scheduler");
+        exit(-1);
+
+    }else if(SCHDLR_ID==0)
+    {
+
+        char processesC[10];
+        char algoNumber[5];
+        char RRQ[5];
+
+        sprintf(processesC, "%d", NumberOfP);
+        sprintf(algoNumber,"%d",algoChoice);
+        sprintf(RRQ,"%d",quantum);
+
+
+        execl("./scheduler.out","scheduler.out",processesC,algoNumber,RRQ,NULL);
+        perror("Error in intializing Scheduler");
+        exit(-1);
+    }
 }
