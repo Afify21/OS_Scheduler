@@ -15,7 +15,6 @@ int main(int argc, char *argv[])
     }
     // Attach to the simulated clock
     initClk();
-
     // Prepare our two message-queue handles
     int SendQueueID, ReceiveQueueID;
     DefineKeysProcess(&SendQueueID, &ReceiveQueueID); // calls msgget() twice

@@ -84,3 +84,22 @@ struct msgbuff
     long mtype;
     int msg;
 };
+struct process
+{
+    int id;
+    pid_t pid;
+    int arrivaltime;
+    int runningtime;
+    int priority;
+    int starttime;
+    int endtime;
+    int remainingtime;
+    int waittime;
+    int responsetime;
+    int finishtime;
+    int turnaroundtime;
+    int lasttime;
+    int flag;
+    int memsize, memoryused;
+    struct Nodemem *mem;
+};
