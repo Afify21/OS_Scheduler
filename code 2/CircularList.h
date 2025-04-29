@@ -2,7 +2,6 @@
 #define CIRCULARLIST_H
 #include "headers.h"
 
-
 struct Node
 {
     struct process data;
@@ -22,9 +21,11 @@ struct CircularList
  * Creates a new circular doubly linked list
  * @return pointer to the list
  */
-struct CircularList *createCircularList() {
-struct CircularList *list = (struct CircularList *)malloc(sizeof(struct CircularList));
-    if (list == NULL) {
+struct CircularList *createCircularList()
+{
+    struct CircularList *list = (struct CircularList *)malloc(sizeof(struct CircularList));
+    if (list == NULL)
+    {
         // Handle memory allocation error
         return NULL;
     }
@@ -40,20 +41,25 @@ struct CircularList *list = (struct CircularList *)malloc(sizeof(struct Circular
  * @param list pointer to the list
  * @param newData data to be inserted
  */
-void insertAtBeginning(struct CircularList *list, struct process newData) {
+void insertAtBeginning(struct CircularList *list, struct process newData)
+{
     struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
-    if (newNode == NULL) {
+    if (newNode == NULL)
+    {
         // Handle memory allocation error
         return;
     }
     newNode->data = newData;
-    if (list->head == NULL) {
+    if (list->head == NULL)
+    {
         newNode->next = newNode;
         newNode->prev = newNode;
         list->head = newNode;
         list->tail = newNode;
         list->current = newNode;
-    } else {
+    }
+    else
+    {
         newNode->next = list->head;
         newNode->prev = list->tail;
         list->head->prev = newNode;
@@ -68,20 +74,25 @@ void insertAtBeginning(struct CircularList *list, struct process newData) {
  * @param list pointer to the list
  * @param newData data to be inserted
  */
-void insertAtEnd(struct CircularList *list, struct process newData) {
+void insertAtEnd(struct CircularList *list, struct process newData)
+{
     struct Node *newNode = (struct Node *)malloc(sizeof(struct Node));
-    if (newNode == NULL) {
+    if (newNode == NULL)
+    {
         // Handle memory allocation error
         return;
     }
     newNode->data = newData;
-    if (list->head == NULL) {
+    if (list->head == NULL)
+    {
         newNode->next = newNode;
         newNode->prev = newNode;
         list->head = newNode;
         list->tail = newNode;
         list->current = newNode;
-    } else {
+    }
+    else
+    {
         newNode->next = list->head;
         newNode->prev = list->tail;
         list->head->prev = newNode;
@@ -92,20 +103,25 @@ void insertAtEnd(struct CircularList *list, struct process newData) {
 }
 /**
  * @brief Deletes the node at the beginning of the list
- * 
+ *
  * @param list pointer to the list
  */
-void deleteAtBeginning(struct CircularList *list) {
-    if (list->head == NULL) {
+void deleteAtBeginning(struct CircularList *list)
+{
+    if (list->head == NULL)
+    {
         // List is empty
         return;
     }
-    if (list->head == list->tail) {
+    if (list->head == list->tail)
+    {
         free(list->head);
         list->head = NULL;
         list->tail = NULL;
         list->current = NULL;
-    } else {
+    }
+    else
+    {
         struct Node *temp = list->head;
         list->head = list->head->next;
         list->head->prev = list->tail;
@@ -116,20 +132,25 @@ void deleteAtBeginning(struct CircularList *list) {
 }
 /**
  * @brief Deletes the node at the end of the list
- * 
+ *
  * @param list pointer to the list
-*/
-void deleteAtEnd(struct CircularList *list) {
-    if (list->head == NULL) {
+ */
+void deleteAtEnd(struct CircularList *list)
+{
+    if (list->head == NULL)
+    {
         // List is empty
         return;
     }
-    if (list->head == list->tail) {
+    if (list->head == list->tail)
+    {
         free(list->head);
         list->head = NULL;
         list->tail = NULL;
         list->current = NULL;
-    } else {
+    }
+    else
+    {
         struct Node *temp = list->tail;
         list->tail = list->tail->prev;
         list->tail->next = list->head;
@@ -141,37 +162,42 @@ void deleteAtEnd(struct CircularList *list) {
 
 /**
  * @brief Checks if the list is empty
- * 
+ *
  * @param list pointer to the list
  * @return int 1 if the list is empty, 0 otherwise
  */
-int isEmpty(struct CircularList *list) {
+int isEmpty(struct CircularList *list)
+{
     return list->size == 0;
 }
 
 /**
  * @brief Returns the size of the list
- * 
+ *
  * @param list pointer to the list
  * @return int size of the list
-*/
-int getSize(struct CircularList *list) {
+ */
+int getSize(struct CircularList *list)
+{
     return list->size;
 }
 
 /**
  * @brief Displays the list
- * 
+ *
  * @param list pointer to the list
-*/
-void displayList(struct CircularList *list) {
-    if (list->head == NULL) {
+ */
+void displayList(struct CircularList *list)
+{
+    if (list->head == NULL)
+    {
         printf("List is empty\n");
         return;
     }
     struct Node *current = list->head;
     printf("Nodes of the circular doubly linked list: \n");
-    do {
+    do
+    {
         // Print current node data
         struct process p = current->data;
         printf("ID: %d, PID: %d, Arrival Time: %d\n", p.id, p.pid, p.arrivaltime); // Modify this to print your process data
@@ -182,17 +208,20 @@ void displayList(struct CircularList *list) {
 }
 /**
  * @brief Destroys the list
- * 
+ *
  * @param list pointer to the list
-*/
-void destroyList(struct CircularList *list) {
-    if (list->head == NULL) {
+ */
+void destroyList(struct CircularList *list)
+{
+    if (list->head == NULL)
+    {
         free(list);
         return;
     }
     struct Node *current = list->head;
     struct Node *next;
-    do {
+    do
+    {
         next = current->next;
         free(current);
         current = next;
@@ -201,23 +230,26 @@ void destroyList(struct CircularList *list) {
 }
 /**
  * @brief Changes the current node to the next node
- * 
+ *
  * @param list pointer to the list
  */
-void changeCurrent(struct CircularList *list) {
+void changeCurrent(struct CircularList *list)
+{
     list->current = list->current->next;
 }
 
 /**
  * @brief Returns the data of the current node
- * 
+ *
  * @param list pointer to the list
  * @param item pointer to the process struct to store the data
- * 
+ *
  * @return int 1 if the current node is not NULL, 0 otherwise
-*/
-int getCurrent(struct CircularList *list, struct process *item) {
-    if (list->current == NULL) {
+ */
+int getCurrent(struct CircularList *list, struct process *item)
+{
+    if (list->current == NULL)
+    {
         return 0;
     }
     *item = list->current->data;
@@ -226,24 +258,31 @@ int getCurrent(struct CircularList *list, struct process *item) {
 
 /**
  * @brief Removes the current node from the list
- * 
+ *
  * @param list pointer to the list
  * @param item pointer to the process struct to store the data
- * 
+ *
  * @return int 1 if the current node is not NULL, 0 otherwise
-*/
-int removeCurrent(struct CircularList *list, struct process *item) {
-    if (list->current == NULL) {
+ */
+int removeCurrent(struct CircularList *list, struct process *item)
+{
+    if (list->current == NULL)
+    {
         return 0;
     }
     *item = list->current->data;
-    if (list->current == list->head) {
+    if (list->current == list->head)
+    {
         list->current = list->current->next;
         deleteAtBeginning(list);
-    } else if (list->current == list->tail) {
+    }
+    else if (list->current == list->tail)
+    {
         list->current = list->current->next;
         deleteAtEnd(list);
-    } else {
+    }
+    else
+    {
         struct Node *temp = list->current;
         list->current->prev->next = list->current->next;
         list->current->next->prev = list->current->prev;
@@ -256,14 +295,14 @@ int removeCurrent(struct CircularList *list, struct process *item) {
 
 /**
  * @brief Changes the data of the current node
- * 
  * @param list pointer to the list
  * @param item process struct to store the inserted data
- * 
  * @return int 1 if the current node is not NULL, 0 otherwise
-*/
-int changeCurrentData(struct CircularList *list, struct process item) {
-    if (list->current == NULL) {
+ */
+int changeCurrentData(struct CircularList *list, struct process item)
+{
+    if (list->current == NULL)
+    {
         return 0;
     }
     list->current->data = item;
