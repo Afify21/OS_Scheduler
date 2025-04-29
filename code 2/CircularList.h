@@ -23,7 +23,7 @@ struct CircularList
  * @return pointer to the list
  */
 struct CircularList *createCircularList() {
-    struct CircularList *list = (struct CircularList *)malloc(sizeof(struct CircularList));
+struct CircularList *list = (struct CircularList *)malloc(sizeof(struct CircularList));
     if (list == NULL) {
         // Handle memory allocation error
         return NULL;
