@@ -3,14 +3,13 @@
 void clearResources(int);
 void chooseAlgorithm(void);
 void createSchedulerAndClock(void);
-void sendInfo(void);
 void setUP_CLK_SCHDLR(void);
 
 int NumberOfP;
 int algoChoice;
 int quantum = -1; // default value
 
-void sendInfo(int);
+void sendInfo(void);
 
 int main(int argc, char *argv[])
 {
@@ -64,6 +63,7 @@ else
     // test // 6. Send the information to the scheduler at the appropriate time.
     // nice // 7. Clear clock resources
     // 6. Send the information to the scheduler at the appropriate time.
+    sendInfo();
     // 7. Clear clock resources
     destroyClk(true);
 }
@@ -104,12 +104,8 @@ void chooseAlgorithm(void)
     }
 }
 
-void createSchedulerandClock(void){
 
-}
-void sendInfo(void){
-    
-}
+
 
 void setUP_CLK_SCHDLR(void){
 

@@ -23,12 +23,7 @@ int SendQueueID;
 int *shmaddr; //
 //===============================
 
-struct process {
-    int id;
-    int arrivalTime;
-    int remainingTime;
-    int priority;
-};
+
 
 struct process processList[MAX_PROCESSES]; 
 
@@ -120,7 +115,7 @@ void chooseAlgorithm(void)
         exit(1);
     }
 }
-void sendInfo(int numberOfProcesses) {
+void sendInfo(void) {
     int currentProcess = 0;
     struct msgbuff buf;
     // Inside processgen.c's main() or init function:
@@ -132,14 +127,14 @@ if (SendQueueID == -1) {
     exit(1);
 }
 
-    while (currentProcess < numberOfProcesses) {
+    while (currentProcess < NumberOfP) {
         int currentTime = getClk();
 
         // Check if the current process has arrived
-        if (processList[currentProcess].arrivalTime <= currentTime) {
+        if (processList[currentProcess].arrivaltime <= currentTime) {
             // Prepare the message
             buf.mtype = processList[currentProcess].id; // Use PID as message type
-            buf.msg = processList[currentProcess].remainingTime;
+            buf.msg = processList[currentProcess].remainingtime;
 
             // Send the message to the scheduler's queue
             if (msgsnd(SendQueueID, &buf, sizeof(buf.msg), 0) == -1) {
@@ -147,7 +142,7 @@ if (SendQueueID == -1) {
             } else {
                 printf("Sent process %d (remaining: %d) at time %d\n",
                        processList[currentProcess].id,
-                       processList[currentProcess].remainingTime,
+                       processList[currentProcess].remainingtime,
                        currentTime);
             }
 
