@@ -1,11 +1,11 @@
 #include "headers.h"
 
 void clearResources(int);
-void chooseAlgorithm(void);
+void  chooseAlgorithm(void);
+
 void createSchedulerAndClock(void);
 void setUP_CLK_SCHDLR(void);
 
-int NumberOfP;
 int algoChoice;
 int quantum = -1; // default value
 
@@ -70,13 +70,13 @@ else
 
 void clearResources(int signum)
 {
-    // TODO Clears all resources in case of interruption
+    msgctl(SendQueueID,IPC_RMID,NULL);
+    exit(0);
 }
+
 
 void chooseAlgorithm(void)
 {
-
-
     printf("Choose a scheduling algorithm:\n");
     printf("1. HPF (Highest Priority First)\n");
     printf("2. SRTN (Shortest Remaining Time)\n");
