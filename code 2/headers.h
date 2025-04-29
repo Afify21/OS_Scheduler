@@ -14,13 +14,23 @@
 typedef short bool;
 #define true 1
 #define false 0
+#define MAX_PROCESSES 100  
 
 #define SHKEY 300
-
+int SendQueueID;
 ///==============================
 // don't mess with this variable//
 int *shmaddr; //
 //===============================
+
+struct process {
+    int id;
+    int arrivalTime;
+    int remainingTime;
+    int priority;
+};
+
+struct process processList[MAX_PROCESSES]; 
 
 int getClk()
 {
@@ -79,6 +89,75 @@ void destroyClk(bool terminateAll)
         killpg(getpgrp(), SIGINT);
     }
 }
+void chooseAlgorithm(void)
+{
+    int algoChoice;
+    int quantum = -1; // default value
+
+    printf("Choose a scheduling algorithm:\n");
+    printf("1. HPF (Highest Priority First)\n");
+    printf("2. SRTN (Shortest Remaining Time)\n");
+    printf("3. RR  (Round Robin)\n");
+    printf("Enter your choice (1-3): ");
+    scanf("%d", &algoChoice);
+
+    if (algoChoice == 3) // RR needs quantum
+    {
+        printf("Enter the time quantum: ");
+        scanf("%d", &quantum);
+    }
+
+    // Example to print what was selected
+    if (algoChoice == 1)
+        printf("You selected HPF.\n");
+    else if (algoChoice == 2)
+        printf("You selected SRT.\n");
+    else if (algoChoice == 3)
+        printf("You selected RR with quantum = %d.\n", quantum);
+    else
+    {
+        printf("Invalid choice. Exiting.\n");
+        exit(1);
+    }
+}
+void sendInfo(int numberOfProcesses) {
+    int currentProcess = 0;
+    struct msgbuff buf;
+    // Inside processgen.c's main() or init function:
+    key_t key = ftok("your_unique_file", 123); // Use a unique identifier
+     SendQueueID = msgget(key, 0666 | IPC_CREAT);
+
+if (SendQueueID == -1) {
+    perror("Failed to create scheduler message queue");
+    exit(1);
+}
+
+    while (currentProcess < numberOfProcesses) {
+        int currentTime = getClk();
+
+        // Check if the current process has arrived
+        if (processList[currentProcess].arrivalTime <= currentTime) {
+            // Prepare the message
+            buf.mtype = processList[currentProcess].id; // Use PID as message type
+            buf.msg = processList[currentProcess].remainingTime;
+
+            // Send the message to the scheduler's queue
+            if (msgsnd(SendQueueID, &buf, sizeof(buf.msg), 0) == -1) {
+                perror("msgsnd failed");
+            } else {
+                printf("Sent process %d (remaining: %d) at time %d\n",
+                       processList[currentProcess].id,
+                       processList[currentProcess].remainingTime,
+                       currentTime);
+            }
+
+            currentProcess++; // Move to the next process
+        } else {
+            usleep(1000); // Avoid busy waiting
+        }
+    }
+}
+
 struct msgbuff
 {
     long mtype;

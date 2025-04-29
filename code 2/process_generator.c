@@ -3,7 +3,7 @@
 void clearResources(int);
 void chooseAlgorithm(void);
 void createSchedulerAndClock(void);
-void sendInfo(void);
+void sendInfo(int);
 
 int main(int argc, char *argv[])
 {
@@ -14,17 +14,19 @@ int main(int argc, char *argv[])
     // TODO Initialization
     // 1. Read the input files.
 
-    FILE *F=fopen(argv[1],"r");
+    FILE *F = fopen(argv[1], "r");
 
-    if(!F)
-    {
-        perror("Cant Open File");
-        return -1;
-    }
-    else
-    {
-        NumberOfP=getNoOfProcessesFromInput(F);
-    }
+if (!F)
+{
+    perror("Cant Open File");
+    return -1;
+}
+else
+{
+    NumberOfP = getNoOfProcessesFromInput(F);
+    readProcessesFromFile(F, NumberOfP); 
+}
+
 
 
 
@@ -53,40 +55,7 @@ void clearResources(int signum)
     // TODO Clears all resources in case of interruption
 }
 
-void chooseAlgorithm(void)
-{
-    int algoChoice;
-    int quantum = -1; // default value
 
-    printf("Choose a scheduling algorithm:\n");
-    printf("1. HPF (Highest Priority First)\n");
-    printf("2. SRTN (Shortest Remaining Time)\n");
-    printf("3. RR  (Round Robin)\n");
-    printf("Enter your choice (1-3): ");
-    scanf("%d", &algoChoice);
-
-    if (algoChoice == 3) // RR needs quantum
-    {
-        printf("Enter the time quantum: ");
-        scanf("%d", &quantum);
-    }
-
-    // Example to print what was selected
-    if (algoChoice == 1)
-        printf("You selected HPF.\n");
-    else if (algoChoice == 2)
-        printf("You selected SRT.\n");
-    else if (algoChoice == 3)
-        printf("You selected RR with quantum = %d.\n", quantum);
-    else
-    {
-        printf("Invalid choice. Exiting.\n");
-        exit(1);
-    }
-}
 void createSchedulerandClock(void){
 
-}
-void sendInfo(void){
-    
 }
