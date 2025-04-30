@@ -1,59 +1,75 @@
 #ifndef MINHEAP_H
 #define MINHEAP_H
 
-#include "headers.h"
+#include "headers.h" 
+
+// Assume "process" is defined in "headers.h" with at least:
+// typedef struct { int pid; int remainingtime; int priority; } process;
 
 typedef struct MinHeap {
     process *arr;
     int capacity;
     int currentSize;
-}MinHeap;
+} MinHeap;
 
-MinHeap* createMinHeap(int capacity);
+// --- Core Functions ---
+MinHeap *createMinHeap(int capacity);
+void destroyMinHeap(MinHeap *minHeap);
+int isEmpty(MinHeap *minHeap);
 
-void MinHeapifySRTN(MinHeap* minHeap,int index);
-void MinHeapifyHPF(MinHeap* minHeap,int index);   
+// --- Heap Operations ---
+void insertMinHeap_SRTN(MinHeap *minHeap, process p);  // For SRTN (Shortest Remaining Time)
+void insertMinHeap_HPF(MinHeap *minHeap, process p);   // For HPF (Highest Priority First)
+process deleteMinSRTN(MinHeap *minHeap);               // Extract min for SRTN
+process deleteMinHPF(MinHeap *minHeap);                // Extract min for HPF
+process getMin(MinHeap *minHeap);                      // Peek min without removal
 
-int Parent(int index);
-int LeftChild(int index);
-int RightChild(int index); 
+// --- Helper Functions ---
+static void MinHeapifySRTN(MinHeap *minHeap, int index);
+static void MinHeapifyHPF(MinHeap *minHeap, int index);
+static inline int Parent(int index);
+static inline int LeftChild(int index);
+static inline int RightChild(int index);
 
-void insertMinHeap_SRTN(MinHeap* minHeap, process p);
-void insertMinHeap_HPF(MinHeap* minHeap, process p);
+// ================= Implementation =================
+MinHeap *createMinHeap(int capacity) {
+    MinHeap *minHeap = (MinHeap *)malloc(sizeof(MinHeap));
+    if (!minHeap) return NULL;
 
-process getMin(MinHeap* minHeap);
-process* getMinPtr(MinHeap* minHeap);
+    minHeap->arr = (process *)malloc(capacity * sizeof(process));
+    if (!minHeap->arr) {
+        free(minHeap);
+        return NULL;
+    }
 
-
-
-
-MinHeap* createMinHeap(int capacity) {
-    MinHeap* minHeap = (MinHeap*)malloc(sizeof(MinHeap));
     minHeap->capacity = capacity;
     minHeap->currentSize = 0;
-    minHeap->arr = (process*)malloc(capacity * sizeof(process));
     return minHeap;
 }
 
-int Parent(int index) {
-    return (index - 1) / 2;
-}
-int LeftChild(int index) {
-    return 2 * index + 1;
-}
-int RightChild(int index) {
-    return 2 * index + 2;
+void destroyMinHeap(MinHeap *minHeap) {
+    if (minHeap) {
+        free(minHeap->arr);
+        free(minHeap);
+    }
 }
 
-void MinHeapifySRTN(MinHeap* minHeap,int index) {
+int isEmpty(MinHeap *minHeap) {
+    return minHeap->currentSize == 0;
+}
+
+// --- Heapify Functions ---
+void MinHeapifySRTN(MinHeap *minHeap, int index) {
     int smallest = index;
     int left = LeftChild(index);
     int right = RightChild(index);
 
-    if (left < minHeap->currentSize && minHeap->arr[left].remainingTime < minHeap->arr[smallest].remainingTime) {
+    if (left < minHeap->currentSize && 
+        minHeap->arr[left].remainingtime < minHeap->arr[smallest].remainingtime) {
         smallest = left;
     }
-    if (right < minHeap->currentSize && minHeap->arr[right].remainingTime < minHeap->arr[smallest].remainingTime) {
+    if (right < minHeap->currentSize && 
+        minHeap->arr[right].remainingtime < minHeap->arr[smallest].remainingtime) {
         smallest = right;
     }
     if (smallest != index) {
@@ -63,15 +79,18 @@ void MinHeapifySRTN(MinHeap* minHeap,int index) {
         MinHeapifySRTN(minHeap, smallest);
     }
 }
-void MinHeapifyHPF(MinHeap* minHeap,int index) {
+
+void MinHeapifyHPF(MinHeap *minHeap, int index) {
     int smallest = index;
     int left = LeftChild(index);
     int right = RightChild(index);
 
-    if (left < minHeap->currentSize && minHeap->arr[left].priority < minHeap->arr[smallest].priority) {
+    if (left < minHeap->currentSize && 
+        minHeap->arr[left].priority < minHeap->arr[smallest].priority) {
         smallest = left;
     }
-    if (right < minHeap->currentSize && minHeap->arr[right].priority < minHeap->arr[smallest].priority) {
+    if (right < minHeap->currentSize && 
+        minHeap->arr[right].priority < minHeap->arr[smallest].priority) {
         smallest = right;
     }
     if (smallest != index) {
@@ -82,7 +101,8 @@ void MinHeapifyHPF(MinHeap* minHeap,int index) {
     }
 }
 
-void insertMinHeap_SRTN(MinHeap* minHeap, process p) {
+// --- Insertion ---
+void insertMinHeap_SRTN(MinHeap *minHeap, process p) {
     if (minHeap->currentSize == minHeap->capacity) {
         printf("Heap is full, cannot insert process\n");
         return;
@@ -91,15 +111,16 @@ void insertMinHeap_SRTN(MinHeap* minHeap, process p) {
     int index = minHeap->currentSize - 1;
     minHeap->arr[index] = p;
 
-    while (index != 0 && minHeap->arr[Parent(index)].remainingTime > minHeap->arr[index].remainingTime) {
+    while (index != 0 && 
+           minHeap->arr[Parent(index)].remainingtime > minHeap->arr[index].remainingtime) {
         process temp = minHeap->arr[index];
         minHeap->arr[index] = minHeap->arr[Parent(index)];
         minHeap->arr[Parent(index)] = temp;
         index = Parent(index);
-    }   
+    }
 }
 
-void insertMinHeap_HPF(MinHeap* minHeap, process p) {
+void insertMinHeap_HPF(MinHeap *minHeap, process p) {
     if (minHeap->currentSize == minHeap->capacity) {
         printf("Heap is full, cannot insert process\n");
         return;
@@ -108,55 +129,54 @@ void insertMinHeap_HPF(MinHeap* minHeap, process p) {
     int index = minHeap->currentSize - 1;
     minHeap->arr[index] = p;
 
-    while (index != 0 && minHeap->arr[Parent(index)].priority > minHeap->arr[index].priority) {
+    while (index != 0 && 
+           minHeap->arr[Parent(index)].priority > minHeap->arr[index].priority) {
         process temp = minHeap->arr[index];
         minHeap->arr[index] = minHeap->arr[Parent(index)];
         minHeap->arr[Parent(index)] = temp;
         index = Parent(index);
-    }   
+    }
 }
 
-process getMin(MinHeap* minHeap); {
+// --- Extraction ---
+process deleteMinSRTN(MinHeap *minHeap) {
     if (minHeap->currentSize == 0) {
         printf("Heap is empty\n");
-        return NULL;
+        process empty = {0};
+        return empty;
+    }
+    process root = minHeap->arr[0];
+    minHeap->arr[0] = minHeap->arr[minHeap->currentSize - 1];
+    minHeap->currentSize--;
+    MinHeapifySRTN(minHeap, 0);
+    return root;
+}
+
+process deleteMinHPF(MinHeap *minHeap) {
+    if (minHeap->currentSize == 0) {
+        printf("Heap is empty\n");
+        process empty = {0};
+        return empty;
+    }
+    process root = minHeap->arr[0];
+    minHeap->arr[0] = minHeap->arr[minHeap->currentSize - 1];
+    minHeap->currentSize--;
+    MinHeapifyHPF(minHeap, 0);
+    return root;
+}
+
+process getMin(MinHeap *minHeap) {
+    if (minHeap->currentSize == 0) {
+        printf("Heap is empty\n");
+        process empty = {0};
+        return empty;
     }
     return minHeap->arr[0];
 }
 
-process* getMinPtr(MinHeap* minHeap) {
-    if (minHeap->currentSize == 0) {
-        printf("Heap is empty\n");
-        return NULL;
-    }
-    return &minHeap->arr[0];
-}
+// --- Helper Functions ---
+int Parent(int index) { return (index - 1) / 2; }
+int LeftChild(int index) { return 2 * index + 1; }
+int RightChild(int index) { return 2 * index + 2; }
 
-void deleteMinSRTN(MinHeap* minHeap, process* p) {
-    if (minHeap->currentSize <= 0) {
-        printf("Heap is empty\n");
-        return;
-    }
-    p=getMinPtr(minHeap);
-    if (minHeap->currentSize == 1) {
-        minHeap->currentSize--;
-        return;
-    }
-    minHeap->arr[0] = minHeap->arr[minHeap->currentSize - 1];
-    minHeap->currentSize--;
-    MinHeapifySRTN(minHeap, 0);
-}
-
-void deleteMinHPF(MinHeap* minHeap) {
-    if (minHeap->currentSize <= 0) {
-        printf("Heap is empty\n");
-        return;
-    }
-    if (minHeap->currentSize == 1) {
-        minHeap->currentSize--;
-        return;
-    }
-    minHeap->arr[0] = minHeap->arr[minHeap->currentSize - 1];
-    minHeap->currentSize--;
-    MinHeapifyHPF(minHeap, 0);
-}
+#endif 
