@@ -48,6 +48,33 @@ struct msgbuff
     long mtype;
     int msg;
 };
+int *Synchro;
+
+int getSync()
+{
+    return *Synchro;
+}
+void setSync(int val)
+{
+    *Synchro = val;
+}
+
+void initSync()
+{
+    key_t key = ftok("keys/Syncman", 65);
+    int Syncid = shmget(key, 4, IPC_CREAT | 0644);
+    Synchro = (int *)shmat(Syncid, (void *)0, 0);
+}
+void destroySync(bool delete)
+{
+    shmdt(Synchro);
+    if (delete)
+    {
+        key_t key = ftok("keys/Syncman", 65);
+        int Syncid = shmget(key, 4, 0444);
+        shmctl(Syncid, IPC_RMID, NULL);
+    }
+}
 
 //==============================
 // Clock Communication Functions
