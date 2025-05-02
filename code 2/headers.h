@@ -157,7 +157,53 @@ void DefineKeysProcess(int *SendQueueID, int *ReceiveQueueID)
         perror("Error creating message queues");
         exit(-1);
     }
+
 }
+void DefineKeys(int *ReadyQueueID, int *SendQueueID, int *ReceiveQueueID, int *GUIID, int *ArrivedProcessesID)
+{
+    key_t ReadyQueueKey;
+    ReadyQueueKey = ftok("keys/Funnyman", 'A');
+    *ReadyQueueID = msgget(ReadyQueueKey, 0666 | IPC_CREAT);
+    if (*ReadyQueueID == -1)
+    {
+        perror("Error in create message queue");
+        exit(-1);
+    }
+    // Initialize Send queue to send turn to process
+    key_t SendQueueKey;
+    SendQueueKey = ftok("keys/Sendman", 'A');
+    *SendQueueID = msgget(SendQueueKey, 0666 | IPC_CREAT);
+    if (*SendQueueID == -1)
+    {
+        perror("Error in create message queue");
+        exit(-1);
+    }
+    // Initialize Receive queue to receive remaining time from process
+    key_t ReceiveQueueKey;
+    ReceiveQueueKey = ftok("keys/Receiveman", 'A');
+    *ReceiveQueueID = msgget(ReceiveQueueKey, 0666 | IPC_CREAT);
+    if (*ReceiveQueueID == -1)
+    {
+        perror("Error in create message queue");
+        exit(-1);
+    }
+    key_t GUIKey = ftok("keys/Guiman", 'A');
+    *GUIID = msgget(GUIKey, 0666 | IPC_CREAT);
+    if (*GUIID == -1)
+    {
+        perror("Error in create message queue");
+        exit(-1);
+    }
+    key_t ArrivedProcessesKey = ftok("keys/Guiman", 'B');
+    *ArrivedProcessesID = msgget(ArrivedProcessesKey, 0666 | IPC_CREAT);
+    if (*ArrivedProcessesID == -1)
+    {
+        perror("Error in create message queue");
+        exit(-1);
+    }
+}
+
+#endif 
 
 //==============================
 // Scheduling Algorithm Chooser
@@ -240,3 +286,4 @@ void DefineKeys(int *ReadyQueueID, int *SendQueueID, int *ReceiveQueueID, int *G
 }
 
 #endif HEADERS_H
+
