@@ -91,7 +91,7 @@ void LogFinishedRR(struct process proc, int noOfProcesses, int *runningTimeSum, 
 
 void RoundRobin(int quantum, int processCount)
 {
-    FILE *f = fopen("memory.log", "w");
+    //FILE *f = fopen("memory.log", "w");
     printf("Round Robin Scheduler\n");
     key_t runningProcKey = ftok("keys/Guirunningman", 'A');
     int runningID = shmget(runningProcKey, 4, IPC_CREAT | 0644);
