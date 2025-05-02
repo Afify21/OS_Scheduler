@@ -120,7 +120,7 @@ void readProcessesFromFile(FILE *f, int processCount) {
             i++;
         }
     }
-
+//ttt
     if (i != processCount) {
         fprintf(stderr, "Warning: expected %d processes, but read %d\n", processCount, i);
     }
