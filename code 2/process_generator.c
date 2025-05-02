@@ -10,7 +10,7 @@ int algoChoice;
 int quantum = -1; // default value
 
 void sendInfo(void);
-
+process processList[MAX_PROCESSES]; // Define processList here
 int main(int argc, char *argv[])
 {
 
@@ -143,5 +143,38 @@ void setUP_CLK_SCHDLR(void){
         execl("./scheduler.out","scheduler.out",processesC,algoNumber,RRQ,NULL);
         perror("Error in intializing Scheduler");
         exit(-1);
+    }
+}
+void sendInfo(void) {
+    int currentProcess = 0;
+    struct msgbuff buf;
+
+    key_t key = ftok("keyfile", 123); // Ensure keyfile exists
+    SendQueueID = msgget(key, 0666 | IPC_CREAT);
+    if (SendQueueID == -1) {
+        perror("Failed to create scheduler message queue");
+        exit(1);
+    }
+
+    while (currentProcess < NumberOfP) {
+        int currentTime = getClk();
+
+        if (processList[currentProcess].arrivaltime <= currentTime) {
+            buf.mtype = processList[currentProcess].id;
+            buf.msg = processList[currentProcess].remainingtime;
+
+            if (msgsnd(SendQueueID, &buf, sizeof(buf.msg), 0) == -1) {
+                perror("msgsnd failed");
+            } else {
+                printf("Sent process %d (remaining: %d) at time %d\n",
+                       processList[currentProcess].id,
+                       processList[currentProcess].remainingtime,
+                       currentTime);
+            }
+
+            currentProcess++;
+        } else {
+            usleep(1000); // avoid busy waiting
+        }
     }
 }
