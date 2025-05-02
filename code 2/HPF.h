@@ -4,80 +4,101 @@
 
 void runHPF(int ProcessesCount)
 {
+    printf("HPF: Starting with %d processes\n", ProcessesCount);
+
     MinHeap *readyQueue = createMinHeap(MAX_PROCESSES);
     process *currentProcess = NULL;
     int completedProcesses = 0;
+    int lastClockTime = -1;
 
     while (completedProcesses < ProcessesCount)
     {
         int currentTime = getClk();
 
-        // Check for new processes
-        struct msgbuff newProcMsg;
-        while (msgrcv(SendQueueID, &newProcMsg, sizeof(newProcMsg.msg), 0, IPC_NOWAIT) != -1)
+        if (currentTime != lastClockTime)
         {
-            for (int i = 0; i < NumberOfP; i++)
+            lastClockTime = currentTime;
+
+            // Check for new processes
+            struct msgbuff newProcMsg;
+            while (msgrcv(SendQueueID, &newProcMsg, sizeof(newProcMsg.msg), 0, IPC_NOWAIT) != -1)
             {
-                if (processList[i].id == newProcMsg.mtype)
+                int pid = newProcMsg.mtype;
+                int remainingTime = newProcMsg.msg;
+
+                // Update process details from message
+                int idx = pid - 1;
+                if (idx >= 0 && idx < ProcessesCount)
                 {
-                    processList[i].remainingtime = newProcMsg.msg;
-                    insertMinHeap_HPF(readyQueue, processList[i]);
-                    break;
+                    processList[idx].remainingtime = remainingTime;
+                    processList[idx].flag = 1;
+
+                    // Insert into ready queue
+                    insertMinHeap_HPF(readyQueue, processList[idx]);
+                    printf("HPF: Enqueued process %d (prio %d)\n",
+                           processList[idx].id, processList[idx].priority);
                 }
             }
-        }
 
-        // Schedule if CPU is idle
-        if (!currentProcess && !isEmpty(readyQueue))
-        {
-            process p = deleteMinHPF(readyQueue);
-            currentProcess = &processList[p.id - 1];
-            currentProcess->starttime = currentTime;
-            currentProcess->responsetime = currentTime - currentProcess->arrivaltime;
-
-            // Fork the process
-            pid_t pid = fork();
-            if (pid == 0)
+            // Schedule new process if needed
+            if (!currentProcess && !isEmpty(readyQueue))
             {
-                char rt[10];
-                sprintf(rt, "%d", currentProcess->runningtime);
-                execl("./process.out", "process.out", rt, NULL);
-                exit(1);
-            }
-            else
-            {
-                currentProcess->pid = pid;
-                logEvent(currentTime, currentProcess->id, "started",
-                         currentProcess->arrivaltime, currentProcess->runningtime,
-                         currentProcess->remainingtime, currentProcess->waittime);
-            }
-        }
+                process p = deleteMinHPF(readyQueue);
+                int idx = p.id - 1;
 
-        // Check if current process finished
-        if (currentProcess)
-        {
-            struct msgbuff updateMsg;
-            if (msgrcv(ReceiveQueueID, &updateMsg, sizeof(updateMsg.msg), currentProcess->id, IPC_NOWAIT) != -1)
-            {
-                currentProcess->remainingtime = updateMsg.msg;
+                currentProcess = &processList[idx];
+                currentProcess->starttime = currentTime;
 
-                if (updateMsg.msg == 0)
+                // Fork and execute
+                pid_t childPid = fork();
+                if (childPid == 0)
                 {
-                    currentProcess->waittime = currentTime - currentProcess->arrivaltime;
-                    currentProcess->finishtime = currentTime;
-                    logEvent(currentTime, currentProcess->id, "finished",
-                             currentProcess->arrivaltime, currentProcess->runningtime,
-                             0, currentProcess->waittime);
+                    // Child process
+                    execl("./process.out", "process.out",
+                          currentProcess->runningtime, NULL);
+                    exit(1);
+                }
+                else
+                {
+                    // Parent process
+                    currentProcess->pid = childPid;
+                    printf("HPF: Started %d at %d (prio %d)\n",
+                           currentProcess->id, currentTime,
+                           currentProcess->priority);
+                }
+            }
+
+            // Check running process status
+            if (currentProcess)
+            {
+                int status;
+                pid_t result = waitpid(currentProcess->pid, &status, WNOHANG);
+
+                if (result > 0)
+                {
+                    // Process completed
+                    printf("HPF: Completed %d at %d\n",
+                           currentProcess->id, currentTime);
                     completedProcesses++;
                     currentProcess = NULL;
                 }
+                else
+                {
+                    // Update remaining time
+                    struct msgbuff updateMsg;
+                    if (msgrcv(ReceiveQueueID, &updateMsg,
+                               sizeof(updateMsg.msg), currentProcess->id, IPC_NOWAIT) != -1)
+                    {
+                        currentProcess->remainingtime = updateMsg.msg;
+                    }
+                }
             }
         }
-
-        usleep(1000);
+        usleep(1000); // Prevent CPU hogging
     }
 
     destroyMinHeap(readyQueue);
+    printf("HPF: All processes completed\n");
 }
 
 #endif
