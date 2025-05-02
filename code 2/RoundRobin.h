@@ -91,22 +91,27 @@ void LogFinishedRR(struct process proc, int noOfProcesses, int *runningTimeSum, 
 
 void RoundRobin(int quantum, int processCount)
 {
-    FILE *f = fopen("memory.log", "w");
+    // FILE *f = fopen("memory.log", "w");
     printf("Round Robin Scheduler\n");
-    key_t runningProcKey = ftok("keys/Guirunningman", 'A');
-    int runningID = shmget(runningProcKey, 4, IPC_CREAT | 0644);
+    //--------------------------- this whole sections is for shared memory slots--------------------
+    key_t runningProcKey = ftok("keys/Guirunningman", 'A');      // unique key for shared memory
+    int runningID = shmget(runningProcKey, 4, IPC_CREAT | 0644); // 4 bytes for int
+    // hena batlob  segment fl kernel bel key el e7na gbnah
     if ((long)runningID == -1)
     {
         perror("Error in creating shm!");
         exit(-1);
     }
-    int *runningProcess = (int *)shmat(runningID, (void *)0, 0);
+    int runningProcess = (int *)shmat(runningID, (void *)0, 0); // Attaches that segment into your address space, returning an int pointing at the shared 4 bytes.
     if ((long)runningProcess == -1)
     {
-        perror("Error in attaching!");
+        perror("Error in attaching!"); // no proccess is running
         exit(-1);
     }
-    *runningProcess = -1;
+
+    *runningProcess = -1; // shared memory slot for the running process
+    // 34an akhly el value b -1 mabd2yan  el howa mfysh had shaghal 3l cpu dlw2ty
+
     key_t deadProcKey = ftok("keys/Guideadman", 'A');
     int deadID = shmget(deadProcKey, 4, IPC_CREAT | 0644);
     if ((long)deadID == -1)
@@ -121,14 +126,16 @@ void RoundRobin(int quantum, int processCount)
         exit(-1);
     }
     *deadProcess = -1;
+    // b2ol en l7d dlw2ty mfysh dead process 7asalet
+    //----------------------------------------------------------------------------------------------
     clearLogFileRR();
-    float TAArray[processCount];
+    float TAArray[processCount]; // array to store the turnaround time of each process
     int TAArrayIndex = 0;
-    int runningTimeSum = 0;
-    int iterator = 0, totalmemory = 1024;
+    int runningTimeSum = 0; // Sum of CPU busy‐time
+    int iterator = 0;       // totalmemory = 1024;
     float WTASum = 0.0f;
     int waitingTimeSum = 0;
-    int HasStartedArray[processCount + 1];
+    int HasStartedArray[processCount + 1]; // Array to track if a process has started (flags)
     for (int i = 0; i <= processCount; i++)
     {
         HasStartedArray[i] = 0;
