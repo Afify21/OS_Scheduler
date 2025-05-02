@@ -1,3 +1,5 @@
+#ifndef HEADERS_H
+#define HEADERS_H
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -141,6 +143,18 @@ void logEvent(int time, int pid, const char *state, int arrival, int total, int 
     FILE *log = fopen("scheduler.log", "a");
     fprintf(log, "At time %d process %d %s\n", time, pid, state);
     fclose(log);
+}
+void DefineKeysProcess(int *SendQueueID, int *ReceiveQueueID) {
+    key_t sendKey = ftok("keyfile", 65);
+    key_t receiveKey = ftok("keyfile", 66);
+    
+    *SendQueueID = msgget(sendKey, 0666 | IPC_CREAT);
+    *ReceiveQueueID = msgget(receiveKey, 0666 | IPC_CREAT);
+    
+    if (*SendQueueID == -1 || *ReceiveQueueID == -1) {
+        perror("Error creating message queues");
+        exit(-1);
+    }
 }
 
 //==============================
