@@ -162,6 +162,8 @@ void sendInfo(void) {
             buf.msg.remainingtime= processList[currentProcess].remainingtime;
             buf.msg.priority = processList[currentProcess].priority;
             buf.msg.runningtime = processList[currentProcess].runningtime;
+            buf.msg.arrivaltime = processList[currentProcess].arrivaltime;
+
 
             if (msgsnd(SendQueueID, &buf, sizeof(buf.msg), 0) == -1)
             {

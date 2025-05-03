@@ -13,6 +13,8 @@
 #include <sys/sem.h>
 #include <sys/msg.h>
 #include <sys/wait.h>
+#include <string.h>  
+
 
 #define MAX_PROCESSES 100
 #define SHKEY 300
@@ -138,11 +140,18 @@ void readProcessesFromFile(FILE *f, int processCount)
         fprintf(stderr, "Warning: expected %d processes, but read %d\n", processCount, i);
     }
 }
-void logEvent(int time, int pid, const char *state, int arrival, int total, int remain, int wait)
-{
+void logEvent(int time, int pid, const char *state, int arrival, int total, int remain, int wait, float TA, float WTA) {
     FILE *log = fopen("scheduler.log", "a");
-    fprintf(log, "At time %d process %d %s\n", time, pid, state);
-    fclose(log);
+    if (log) {
+        if (strcmp(state, "finished") == 0) {
+            fprintf(log, "At time %d process %d %s arr %d total %d remain %d wait %d TA %.0f WTA %.2f\n",
+                    time, pid, state, arrival, total, remain, wait, TA, WTA);
+        } else {
+            fprintf(log, "At time %d process %d %s arr %d total %d remain %d wait %d\n",
+                    time, pid, state, arrival, total, remain, wait);
+        }
+        fclose(log);
+    }
 }
 // void DefineKeysProcess(int *SendQueueID, int *ReceiveQueueID)
 // {

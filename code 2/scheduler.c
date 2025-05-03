@@ -2,6 +2,8 @@
 #include "MinHeap.h"
 #include "RoundRobin.h"
 #include "HPF.h"
+#include "SRTN.h"
+
 
 int main(int argc, char *argv[])
 {
@@ -51,9 +53,9 @@ int main(int argc, char *argv[])
         runHPF(ProcessesCount);
         break;
     case 2:
-        // Add SRTN implementation here when ready
-        printf("Scheduler: SRTN algorithm not yet implemented\n");
-        break;
+    printf("Scheduler: Running HPF algorithm\n");
+    runSRTN(ProcessesCount);
+    break;
     case 3:
         printf("Scheduler: Running RR algorithm\n");
         RoundRobin(QuantumNumber, ProcessesCount);
