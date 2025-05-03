@@ -75,25 +75,69 @@ void setUP_CLK_SCHDLR(void) {
     sleep(1);
 }
 
-void sendInfo(void) {
+// void sendInfo(void) { ///////////////////////////RR
+//     struct msgbuff buf;
+//     int sent = 0;
+//     while (sent < NumberOfP) {
+//         int clk = getClk();
+//         if (processList[sent].arrivaltime <= clk) {
+//             buf.mtype = 1;  // a single arrival queue type
+//             memcpy(&buf.msg, &processList[sent], sizeof(processList[sent]));
+//             if (msgsnd(ReadyQueueID, &buf, sizeof(buf.msg), 0) == -1) {
+//                 perror("msgsnd ReadyQueue");
+//             }
+//             sent++;
+//         } else {
+//             usleep(100000);
+//         }
+//     }
+//     // Keep generator alive so IPC remains valid
+//     for (;;)
+//         pause();
+// }
+void sendInfo(void) {           ///////////////////////////HPF and SRTN
+    int currentProcess = 0;
     struct msgbuff buf;
-    int sent = 0;
-    while (sent < NumberOfP) {
-        int clk = getClk();
-        if (processList[sent].arrivaltime <= clk) {
-            buf.mtype = 1;  // a single arrival queue type
-            memcpy(&buf.msg, &processList[sent], sizeof(processList[sent]));
-            if (msgsnd(ReadyQueueID, &buf, sizeof(buf.msg), 0) == -1) {
-                perror("msgsnd ReadyQueue");
+
+    // We've already created the message queues in setUP_CLK_SCHDLR
+
+    printf("Starting to send process information to scheduler...\n");
+    while (currentProcess < NumberOfP) {
+        int currentTime = getClk();
+
+        if (processList[currentProcess].arrivaltime <= currentTime)
+        {
+            buf.mtype = processList[currentProcess].id;
+            buf.msg.id = processList[currentProcess].id;
+            buf.msg.remainingtime= processList[currentProcess].remainingtime;
+            buf.msg.priority = processList[currentProcess].priority;
+            buf.msg.runningtime = processList[currentProcess].runningtime;
+            buf.msg.arrivaltime = processList[currentProcess].arrivaltime;
+
+
+            if (msgsnd(SendQueueID, &buf, sizeof(buf.msg), 0) == -1)
+            {
+                perror("msgsnd failed");
+            } else {
+                printf("Sent process %d (remaining: %d, priority: %d, running: %d) at time %d\n",
+                    processList[currentProcess].id,
+                    processList[currentProcess].remainingtime,
+                    processList[currentProcess].priority,
+                    processList[currentProcess].runningtime,
+                    currentTime);
             }
-            sent++;
-        } else {
-            usleep(100000);
+
+            currentProcess++;
+        }
+        else
+        {
+            // Sleep for a short time to avoid busy waiting
+            usleep(100000); // 100ms sleep is more reasonable
         }
     }
-    // Keep generator alive so IPC remains valid
-    for (;;)
-        pause();
+
+    printf("All processes have been sent to the scheduler\n");
+    while(1);
 }
 
 int main(int argc, char *argv[]) {
