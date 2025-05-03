@@ -34,11 +34,11 @@ int main(int argc, char *argv[]) {
         break;
     case 2:
     printf("Scheduler: Running HPF algorithm\n");
-    runSRTN(ProcessesCount);
+    runSRTN(NumberOfP);
     break;
     case 3:
         printf("Scheduler: Running RR algorithm\n");
-        RoundRobin(QuantumNumber, ProcessesCount);
+        RoundRobin(q, n);
 
         break;
       default:
