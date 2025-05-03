@@ -32,7 +32,7 @@ void runHPF(int ProcessesCount) {
             if (currentProcess) {
                 remainingTime--;
                 if (remainingTime <= 0) {
-                    printf("HPF: Process %d completed at time %d\n", currentProcess->id, currentTime);
+                    printf("HPF: Process %d completed at time %d\n", currentProcess->id, currentTime-1);
                     completedProcesses++;  // Increment completed counter
                     free(currentProcess);
                     currentProcess = NULL;
@@ -46,7 +46,7 @@ void runHPF(int ProcessesCount) {
                 *currentProcess = p;
                 remainingTime = currentProcess->runningtime;
                 printf("HPF: Started process %d at time %d (Runtime: %d)\n", 
-                      currentProcess->id, currentTime, remainingTime);
+                      currentProcess->id, currentTime-1, remainingTime);
             }
         }
         usleep(1000);
