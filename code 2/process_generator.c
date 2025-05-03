@@ -1,191 +1,118 @@
+// process_generator.c
 #include "headers.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+#include <sys/msg.h>
+#include <string.h>
 
-void clearResources(int);
-void chooseAlgorithm(void);
-void setUP_CLK_SCHDLR(void);
-void sendInfo(void);
-
+// Globals
 int algoChoice;
-int quantum = -1; // default value
+int quantum = -1;
+int ReadyQueueID, SendQueueID, ReceiveQueueID;
+int NumberOfP;
+process processList[MAX_PROCESSES];
 
-process processList[MAX_PROCESSES]; // Define processList here
-
-int main(int argc, char *argv[])
-{
-    signal(SIGINT, clearResources);
-
-    // 1. Read the input files.
-    FILE *F = fopen(argv[1], "r");
-    if (!F)
-    {
-        perror("Can't Open File");
-        return -1;
-    }
-
-    // Read process information from file
-    NumberOfP = getNoOfProcessesFromInput(F);
-    readProcessesFromFile(F, NumberOfP);
-    fclose(F); // Close the file when done
-
-    // 2. Ask the user for the chosen scheduling algorithm and its parameters
-    chooseAlgorithm();
-
-    // 3. Create the clock process and scheduler process
-    // The clock process must be created first, then we initialize the clock
-    // in the parent process before creating the scheduler
-    setUP_CLK_SCHDLR();
-
-    // 4. Send the process information to the scheduler at the appropriate time
-    sendInfo();
-
-    // 5. Clean up resources
-    destroyClk(true);
-    return 0;
-}
-
-void clearResources(int signum)
-{
-    // Clean up all message queues and shared memory
-    msgctl(SendQueueID, IPC_RMID, NULL);
+void clearResources(int signum) {
+    msgctl(ReadyQueueID,   IPC_RMID, NULL);
+    msgctl(SendQueueID,    IPC_RMID, NULL);
+    msgctl(ReceiveQueueID, IPC_RMID, NULL);
     destroyClk(true);
     exit(0);
 }
 
-void chooseAlgorithm(void)
-{
-    printf("Choose a scheduling algorithm:\n");
-    printf("1. HPF (Highest Priority First)\n");
-    printf("2. SRTN (Shortest Remaining Time)\n");
-    printf("3. RR  (Round Robin)\n");
-    printf("Enter your choice (1-3): ");
-    scanf("%d", &algoChoice);
-
-    if (algoChoice == 3) // RR needs quantum
-    {
-        printf("Enter the time quantum: ");
-        scanf("%d", &quantum);
-    }
-
-    // Print what was selected
-    if (algoChoice == 1)
-        printf("You selected HPF.\n");
-    else if (algoChoice == 2)
-        printf("You selected SRT.\n");
-    else if (algoChoice == 3)
-        printf("You selected RR with quantum = %d.\n", quantum);
-    else
-    {
-        printf("Invalid choice. Exiting.\n");
+void chooseAlgorithm(void) {
+    printf("Choose a scheduling algorithm:\n"
+           "1. HPF\n"
+           "2. SRTN\n"
+           "3. RR\n"
+           "Enter (1-3): ");
+    if (scanf("%d", &algoChoice) != 1 || algoChoice < 1 || algoChoice > 3) {
+        fprintf(stderr, "Invalid choice\n");
         exit(1);
+    }
+    if (algoChoice == 3) {
+        printf("Enter time quantum: ");
+        if (scanf("%d", &quantum) != 1 || quantum <= 0) {
+            fprintf(stderr, "Invalid quantum\n");
+            exit(1);
+        }
     }
 }
 
-void setUP_CLK_SCHDLR(void)
-{
-    // First, make sure we don't have any existing message queues
-    key_t send_key = ftok("keyfile", 65);
-    key_t recv_key = ftok("keyfile", 66);
-    int tmp_send = msgget(send_key, 0666);
-    int tmp_recv = msgget(recv_key, 0666);
+void setUP_CLK_SCHDLR(void) {
+    // Clean up any old queues
+    key_t k1 = ftok("keyfile", 65), k2 = ftok("keyfile", 66);
+    int t1 = msgget(k1, 0666), t2 = msgget(k2, 0666);
+    if (t1 != -1) msgctl(t1, IPC_RMID, NULL);
+    if (t2 != -1) msgctl(t2, IPC_RMID, NULL);
 
-    if (tmp_send != -1)
-        msgctl(tmp_send, IPC_RMID, NULL);
-    if (tmp_recv != -1)
-        msgctl(tmp_recv, IPC_RMID, NULL);
-
-    // Setup message queues that will be used
+    // Create the three queues
     DefineKeys(&ReadyQueueID, &SendQueueID, &ReceiveQueueID);
 
-    // 1. Create the clock process first
-    int CLK_ID = fork();
-    if (CLK_ID == -1)
-    {
-        perror("Error initializing clock");
-        exit(-1);
-    }
-    else if (CLK_ID == 0)
-    {
-        // This is the child process for the clock
+    // Fork clock
+    if (fork() == 0) {
         execl("./clk.out", "clk.out", NULL);
-        perror("Error executing clock");
-        exit(-1);
+        perror("clk.execl");
+        _exit(1);
     }
-
-    // Give the clock process time to fully initialize the shared memory
     sleep(1);
 
-    // 2. Initialize clock in the parent process
+    // Init clock in parent
     initClk();
-    printf("Clock initialized successfully at time %d\n", getClk());
 
-    // 3. Create the scheduler process
-    int SCHDLR_ID = fork();
-    if (SCHDLR_ID == -1)
-    {
-        perror("Error initializing scheduler");
-        exit(-1);
+    // Fork scheduler
+    if (fork() == 0) {
+        char p[16], a[4], q[4];
+        sprintf(p, "%d", NumberOfP);
+        sprintf(a, "%d", algoChoice);
+        sprintf(q, "%d", quantum);
+        execl("./scheduler.out", "scheduler.out", p, a, q, NULL);
+        perror("sched.execl");
+        _exit(1);
     }
-    else if (SCHDLR_ID == 0)
-    {
-        // This is the child process for the scheduler
-        char processesC[10];
-        char algoNumber[5];
-        char RRQ[5];
-
-        sprintf(processesC, "%d", NumberOfP);
-        sprintf(algoNumber, "%d", algoChoice);
-        sprintf(RRQ, "%d", quantum);
-
-        execl("./scheduler.out", "scheduler.out", processesC, algoNumber, RRQ, NULL);
-        perror("Error executing scheduler");
-        exit(-1);
-    }
-
-    // Wait a moment for the scheduler to initialize
     sleep(1);
 }
 
 void sendInfo(void) {
-    int currentProcess = 0;
     struct msgbuff buf;
-
-    // We've already created the message queues in setUP_CLK_SCHDLR
-
-    printf("Starting to send process information to scheduler...\n");
-    while (currentProcess < NumberOfP) {
-        int currentTime = getClk();
-
-        if (processList[currentProcess].arrivaltime <= currentTime)
-        {
-            buf.mtype = processList[currentProcess].id;
-            buf.msg.id = processList[currentProcess].id;
-            buf.msg.remainingtime= processList[currentProcess].remainingtime;
-            buf.msg.priority = processList[currentProcess].priority;
-            buf.msg.runningtime = processList[currentProcess].runningtime;
-            buf.msg.arrivaltime = processList[currentProcess].arrivaltime;
-
-
-            if (msgsnd(SendQueueID, &buf, sizeof(buf.msg), 0) == -1)
-            {
-                perror("msgsnd failed");
-            } else {
-                printf("Sent process %d (remaining: %d, priority: %d, running: %d) at time %d\n",
-                    processList[currentProcess].id,
-                    processList[currentProcess].remainingtime,
-                    processList[currentProcess].priority,
-                    processList[currentProcess].runningtime,
-                    currentTime);
+    int sent = 0;
+    while (sent < NumberOfP) {
+        int clk = getClk();
+        if (processList[sent].arrivaltime <= clk) {
+            buf.mtype = 1;  // a single arrival queue type
+            memcpy(&buf.msg, &processList[sent], sizeof(processList[sent]));
+            if (msgsnd(ReadyQueueID, &buf, sizeof(buf.msg), 0) == -1) {
+                perror("msgsnd ReadyQueue");
             }
-
-            currentProcess++;
-        }
-        else
-        {
-            // Sleep for a short time to avoid busy waiting
-            usleep(100000); // 100ms sleep is more reasonable
+            sent++;
+        } else {
+            usleep(100000);
         }
     }
+    // Keep generator alive so IPC remains valid
+    for (;;)
+        pause();
+}
 
-    printf("All processes have been sent to the scheduler\n");
-    while(1);
+int main(int argc, char *argv[]) {
+    if (argc != 2) {
+        fprintf(stderr, "Usage: %s <input_file>\n", argv[0]);
+        return 1;
+    }
+    signal(SIGINT, clearResources);
+
+    FILE *f = fopen(argv[1], "r");
+    if (!f) { perror("fopen"); return 1; }
+    NumberOfP = getNoOfProcessesFromInput(f);
+    readProcessesFromFile(f, NumberOfP);
+    fclose(f);
+
+    chooseAlgorithm();
+    setUP_CLK_SCHDLR();
+    sendInfo();
+
+    destroyClk(true);
+    return 0;
 }

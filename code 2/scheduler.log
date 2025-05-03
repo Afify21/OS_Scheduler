@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Scheduler Log - Started at time 1
 # Algorithm: 2, Quantum: -1
 At time 11 process 1 arrived arr 11 total 8 remain 8 wait 0
@@ -34,3 +35,119 @@ At time 100 process 8 started arr 32 total 24 remain 24 wait 68
 At time 124 process 8 finished arr 32 total 24 remain 0 wait 67 TA 92 WTA 3.83
 At time 124 process 9 started arr 42 total 29 remain 29 wait 82
 At time 153 process 9 finished arr 42 total 29 remain 0 wait 81 TA 111 WTA 3.83
+=======
+# Scheduler start at time 1
+# algo=3, quantum=1
+--- RR start: quantum=1, total=5 at t=0 ---
+Enqueued P1 at t=1
+P1 started at t=1
+Enqueued P2 at t=2
+P1 preempted at t=2
+P2 started at t=2
+P2 preempted at t=3
+P1 resumed at t=3
+Enqueued P3 at t=4
+P1 preempted at t=4
+P2 resumed at t=4
+P2 preempted at t=5
+P3 started at t=5
+Enqueued P4 at t=6
+P3 preempted at t=6
+P4 started at t=6
+P4 preempted at t=7
+P1 resumed at t=7
+Enqueued P5 at t=8
+P1 finished at t=8, wait=5, TA=8, WTA=2.67
+P2 resumed at t=8
+P2 preempted at t=9
+P3 resumed at t=9
+P3 preempted at t=10
+P4 resumed at t=10
+P4 preempted at t=11
+P5 started at t=11
+P5 preempted at t=12
+P2 resumed at t=12
+P2 preempted at t=13
+P3 resumed at t=13
+P3 preempted at t=14
+P4 resumed at t=14
+P4 preempted at t=15
+P5 resumed at t=15
+P5 preempted at t=16
+P2 resumed at t=16
+P2 preempted at t=17
+P3 resumed at t=17
+P3 preempted at t=18
+P4 resumed at t=18
+P4 preempted at t=19
+P5 resumed at t=19
+P5 preempted at t=20
+P2 resumed at t=20
+P2 finished at t=21, wait=13, TA=19, WTA=3.17
+P3 resumed at t=21
+P3 preempted at t=22
+P4 resumed at t=22
+P4 preempted at t=23
+P5 resumed at t=23
+P5 preempted at t=24
+P3 resumed at t=24
+P3 preempted at t=25
+P4 resumed at t=25
+P4 preempted at t=26
+P5 resumed at t=26
+P5 preempted at t=27
+P3 resumed at t=27
+P3 preempted at t=28
+P4 resumed at t=28
+P4 preempted at t=29
+P5 resumed at t=29
+P5 preempted at t=30
+P3 resumed at t=30
+P3 preempted at t=31
+P4 resumed at t=31
+P4 preempted at t=32
+P5 resumed at t=32
+P5 preempted at t=33
+P3 resumed at t=33
+P3 finished at t=34, wait=21, TA=30, WTA=3.33
+P4 resumed at t=34
+P4 preempted at t=35
+P5 resumed at t=35
+P5 preempted at t=36
+P4 resumed at t=36
+P4 preempted at t=37
+P5 resumed at t=37
+P5 preempted at t=38
+P4 resumed at t=38
+P4 preempted at t=39
+P5 resumed at t=39
+P5 preempted at t=40
+P4 resumed at t=40
+P4 preempted at t=41
+P5 resumed at t=41
+P5 preempted at t=42
+P4 resumed at t=42
+P4 preempted at t=43
+P5 resumed at t=43
+P5 preempted at t=44
+P4 resumed at t=44
+P4 preempted at t=45
+P5 resumed at t=45
+P5 preempted at t=46
+P4 resumed at t=46
+P4 finished at t=47, wait=26, TA=41, WTA=2.73
+P5 resumed at t=47
+P5 preempted at t=48
+P5 resumed at t=48
+P5 preempted at t=49
+P5 resumed at t=49
+P5 preempted at t=50
+P5 resumed at t=50
+P5 preempted at t=51
+P5 resumed at t=51
+P5 preempted at t=52
+P5 resumed at t=52
+P5 preempted at t=53
+P5 resumed at t=53
+P5 finished at t=54, wait=26, TA=46, WTA=2.30
+>>>>>>> 5fd0eee9200879ae5806529e1c254cc783045930
