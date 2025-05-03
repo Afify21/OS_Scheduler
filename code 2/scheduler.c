@@ -25,8 +25,13 @@ int main(int argc, char * argv[])
            ProcessesCount, AlgoNumber, QuantumNumber);
 
     // Initialize the message queues for communication
-    DefineKeysProcess(&SendQueueID, &ReceiveQueueID);
-    printf("Scheduler: Message queues initialized\n");
+    // DefineKeysProcess(&SendQueueID, &ReceiveQueueID);
+    key_t send_key = ftok("keyfile", 65);
+SendQueueID = msgget(send_key, 0666);
+if (SendQueueID == -1) {
+    perror("Error accessing SendQueueID");
+    exit(-1);
+}
     
     // Create a log file for scheduler events
     FILE *logFile = fopen("scheduler.log", "w");

@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
         // Use a single buffer for both receiving and sending
         struct msgbuff buf;
 
+
         // Wait (block) until scheduler sends a message with mtype == our PID
         // This returns the number of bytes received (or -1 on error)
         int received = msgrcv(
@@ -51,7 +52,7 @@ int main(int argc, char *argv[])
 
         // Prepare the same buffer to report back
         buf.mtype = getpid();    // so scheduler knows whose update this is
-        buf.msg = remainingTime; // how many ticks left
+        buf.msg.remainingtime = remainingTime; // how many ticks left
 
         // Send the updated remaining time back to scheduler
         msgsnd(

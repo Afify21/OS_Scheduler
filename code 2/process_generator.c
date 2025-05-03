@@ -81,17 +81,22 @@ void chooseAlgorithm(void)
 
 void setUP_CLK_SCHDLR(void) {
     // First, make sure we don't have any existing message queues
-    key_t send_key = ftok("keyfile", 65);
-    key_t recv_key = ftok("keyfile", 66);
-    int tmp_send = msgget(send_key, 0666);
-    int tmp_recv = msgget(recv_key, 0666);
+    // key_t send_key = ftok("keyfile", 65);
+    // // key_t recv_key = ftok("keyfile", 66);
+    // int tmp_send = msgget(send_key, 0666);
+    // int tmp_recv = msgget(recv_key, 0666);
     
-    if (tmp_send != -1) msgctl(tmp_send, IPC_RMID, NULL);
-    if (tmp_recv != -1) msgctl(tmp_recv, IPC_RMID, NULL);
+    // if (tmp_send != -1) msgctl(tmp_send, IPC_RMID, NULL);
+    // if (tmp_recv != -1) msgctl(tmp_recv, IPC_RMID, NULL);
     
     // Setup message queues that will be used
-    DefineKeysProcess(&SendQueueID, &ReceiveQueueID);
-    
+    // DefineKeysProcess(&SendQueueID, &ReceiveQueueID);
+    key_t send_key = ftok("keyfile", 65);
+    SendQueueID = msgget(send_key, IPC_CREAT | 0666);
+    if (SendQueueID == -1) {
+        perror("Error creating SendQueueID");
+        exit(-1);
+    }
     // 1. Create the clock process first
     int CLK_ID = fork();
     if (CLK_ID == -1) {
@@ -136,27 +141,37 @@ void setUP_CLK_SCHDLR(void) {
 }
 
 void sendInfo(void) {
+//     key_t send_key = ftok("keyfile", 65);
+// SendQueueID = msgget(send_key, IPC_CREAT | 0666);
+// if (SendQueueID == -1) {
+//     perror("Error creating SendQueueID");
+//     exit(-1);
+// }
     int currentProcess = 0;
     struct msgbuff buf;
 
     // We've already created the message queues in setUP_CLK_SCHDLR
     
     printf("Starting to send process information to scheduler...\n");
-    
     while (currentProcess < NumberOfP) {
         int currentTime = getClk();
 
         if (processList[currentProcess].arrivaltime <= currentTime) {
             buf.mtype = processList[currentProcess].id;
-            buf.msg = processList[currentProcess].remainingtime;
+            buf.msg.id = processList[currentProcess].id;
+            buf.msg.remainingtime= processList[currentProcess].remainingtime;
+            buf.msg.priority = processList[currentProcess].priority;
+            buf.msg.runningtime = processList[currentProcess].runningtime;
 
             if (msgsnd(SendQueueID, &buf, sizeof(buf.msg), 0) == -1) {
                 perror("msgsnd failed");
             } else {
-                printf("Sent process %d (remaining: %d) at time %d\n",
-                       processList[currentProcess].id,
-                       processList[currentProcess].remainingtime,
-                       currentTime);
+                printf("Sent process %d (remaining: %d, priority: %d, running: %d) at time %d\n",
+                    processList[currentProcess].id,
+                    processList[currentProcess].remainingtime,
+                    processList[currentProcess].priority,
+                    processList[currentProcess].runningtime,
+                    currentTime);
             }
 
             currentProcess++;

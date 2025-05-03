@@ -45,7 +45,7 @@ typedef struct process {
  process processList[MAX_PROCESSES]; // Declare processList as extern
 struct msgbuff {
     long mtype;
-    int msg;
+    process msg;
 };
 int *Synchro;
 
