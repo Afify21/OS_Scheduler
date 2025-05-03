@@ -22,6 +22,7 @@ int *shmaddr;
 int NumberOfP;
 int SendQueueID;
 int ReceiveQueueID;
+int ReadyQueueID;
 
 typedef struct process
 {

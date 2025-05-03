@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
            ProcessesCount, AlgoNumber, QuantumNumber);
 
     // Initialize the message queues for communication
-    DefineKeysProcess(&SendQueueID, &ReceiveQueueID);
+    DefineKeys(&ReadyQueueID,&SendQueueID, &ReceiveQueueID);
     printf("Scheduler: Message queues initialized\n");
 
     // Create a log file for scheduler events
