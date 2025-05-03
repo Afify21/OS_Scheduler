@@ -99,7 +99,8 @@ void RoundRobin(int quantum, int processCount) {
                     int waitTime = turnaround - cur.runningtime;
                     float wta = (float)turnaround / cur.runningtime;  // TA / burst time
 
-                    logf("P%d finished at t=%d, wait=%d, TA=%d, WTA=%f\n",cur.id, t, waitTime, turnaround, wta);
+                    logf("P%d finished at t=%d, wait=%d, TA=%d, WTA=%.2f\n",
+                         cur.id, t, waitTime, turnaround, wta);
 
                     // Accumulate metrics
                     sumRun += cur.runningtime;
@@ -155,10 +156,10 @@ void RoundRobin(int quantum, int processCount) {
     {
         FILE *perf = fopen("scheduler.perf", "w");
         if (perf) {
-            fprintf(perf, "CPU Util=%.2f%%\n", sumRun / (float)lastClk * 100);
+            fprintf(perf, "CPU Util=%.2f%%", sumRun / (float)lastClk * 100);
             fprintf(perf, "Avg TA=%.2f", (sumWait + sumRun) / (float)processCount);
-            fprintf(perf, "Avg WTA=%.2f\n", sumWTA / processCount);
-            fprintf(perf, "Avg Wait=%.2f\n", (float)sumWait / processCount);
+            fprintf(perf, "Avg WTA=%.2f", sumWTA / processCount);
+            fprintf(perf, "Avg Wait=%.2f", (float)sumWait / processCount);
             fclose(perf);
         } else {
             perror("fopen scheduler.perf");
