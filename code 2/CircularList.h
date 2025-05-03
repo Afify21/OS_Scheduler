@@ -266,30 +266,39 @@ int getCurrent(struct CircularList *list, struct process *item)
  */
 int removeCurrent(struct CircularList *list, struct process *item)
 {
-    if (list->current == NULL)
-    {
+    if (!list || !list->current)
         return 0;
-    }
-    *item = list->current->data;
-    if (list->current == list->head)
+
+    // Save the data if requested
+    if (item)
+        *item = list->current->data;
+
+    struct Node *toRemove = list->current;
+
+    // If this is the only node in the list:
+    if (list->size == 1)
     {
-        list->current = list->current->next;
-        deleteAtBeginning(list);
+        list->head = list->tail = list->current = NULL;
+        free(toRemove);
+        list->size = 0;
+        return 1;
     }
-    else if (list->current == list->tail)
-    {
-        list->current = list->current->next;
-        deleteAtEnd(list);
-    }
-    else
-    {
-        struct Node *temp = list->current;
-        list->current->prev->next = list->current->next;
-        list->current->next->prev = list->current->prev;
-        list->current = list->current->next;
-        free(temp);
-        list->size--;
-    }
+
+    // Link around toRemove
+    toRemove->prev->next = toRemove->next;
+    toRemove->next->prev = toRemove->prev;
+
+    // Update head or tail if needed
+    if (toRemove == list->head)
+        list->head = toRemove->next;
+    if (toRemove == list->tail)
+        list->tail = toRemove->prev;
+
+    // Advance current to the next node
+    list->current = toRemove->next;
+
+    free(toRemove);
+    list->size--;
     return 1;
 }
 

@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-/* Each process simulates a CPU-bound job: receive one “tick” from the scheduler,
+/* Each process simulates a CPU-bound job: receive one "tick" from the scheduler,
    decrement its remaining time, report back, and wait for the next clock tick. */
 
 int main(int argc, char *argv[])
@@ -13,21 +13,21 @@ int main(int argc, char *argv[])
         perror("Invalid number of arguments");
         return -1;
     }
+    printf("[DEBUG] Process %d started with runtime %s\n", getpid(), argv[1]);
     // Attach to the simulated clock
     initClk();
     // Prepare our two message-queue handles
-    int SendQueueID, ReceiveQueueID ,ReadyQueueID;
-    DefineKeys(&ReadyQueueID,&SendQueueID, &ReceiveQueueID); // calls msgget() twice
-    // SendQueueID:   scheduler → process “here’s your turn”
-    // ReceiveQueueID: process → scheduler “here’s my remaining time”
- //ready queue hena mlosh lazma 
-
+    int SendQueueID, ReceiveQueueID, ReadyQueueID;
+    DefineKeys(&ReadyQueueID, &SendQueueID, &ReceiveQueueID); // calls msgget() twice
+    // SendQueueID:   scheduler → process "here's your turn"
+    // ReceiveQueueID: process → scheduler "here's my remaining time"
+    // ready queue hena mlosh lazma
 
     // Initialize our remaining-time counter
     int remainingTime = atoi(argv[1]);
     int currentClock = getClk();
 
-    // Main loop run until we’ve used up all our ticks
+    // Main loop run until we've used up all our ticks
     while (remainingTime > 0)
     {
         // Sync with current clock tick
@@ -36,45 +36,45 @@ int main(int argc, char *argv[])
         // Use a single buffer for both receiving and sending
         struct msgbuff buf;
 
-
-        // Wait (block) until scheduler sends a message with mtype == our PID
-        // This returns the number of bytes received (or -1 on error)
+        printf("[DEBUG] Process %d waiting for msgrcv on SendQueueID\n", getpid());
+        // Wait for scheduler's message
         int received = msgrcv(
-            SendQueueID,     // which queue to read from
-            &buf,            // our single buffer
-            sizeof(buf.msg), // only the payload size
-            getpid(),        // filter: mtype must match our PID
-            0                // blocking receive
-        );  
-        //Handshake mechanism
-//In your process.c each child sits blocked in
-//waiting for a message whose mtype equals its PID.
-        if (received != -1) // if no error
+            SendQueueID,
+            &buf,
+            sizeof(buf.msg),
+            getpid(),
+            0);
+        printf("[DEBUG] Process %d msgrcv returned: %d\n", getpid(), received);
+
+        if (received != -1)
         {
-            // We got the “go” for one tick
+            // We got the "go" for one tick
             remainingTime--;
+            printf("[DEBUG] Process %d: Remaining time = %d\n", getpid(), remainingTime);
         }
 
-        // Prepare the same buffer to report back
-        buf.mtype = getpid();    // so scheduler knows whose update this is
-        buf.msg.remainingtime = remainingTime; // how many ticks left
+        // Send back the updated remaining time
+        buf.mtype = getpid();
+        buf.msg.remainingtime = remainingTime;
+        buf.msg.id = getpid();
 
-        // Send the updated remaining time back to scheduler
-        msgsnd(
-            ReceiveQueueID,  // which queue to write to
-            &buf,            // reusing the buffer
-            sizeof(buf.msg), // only the payload size
-            0                // blocking send on error (rare)
-        );
+        printf("[DEBUG] Process %d sending msgsnd to ReceiveQueueID\n", getpid());
+        if (msgsnd(ReceiveQueueID, &buf, sizeof(buf.msg), 0) == -1)
+        {
+            perror("Error sending message back to scheduler");
+            exit(-1);
+        }
+        printf("[DEBUG] Process %d sent message to scheduler\n", getpid());
 
         // Busy-wait until the clock advances before looping again
         while (currentClock == getClk())
         {
-            /* Just ensures no extra loops per tick */
+            usleep(1000); // Small sleep to reduce CPU usage
         }
     }
 
-    // We’re done—detach from the clock service and exit
+    // We're done—detach from the clock service and exit
+    printf("[DEBUG] Process %d finished and detaching from clock\n", getpid());
     destroyClk(false);
     return 0;
 } // trem
