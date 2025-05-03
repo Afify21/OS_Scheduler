@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
         break;
     case 2:
     printf("Scheduler: Running HPF algorithm\n");
-    runSRTN(NumberOfP);
+    runSRTN(n);
     break;
     case 3:
         printf("Scheduler: Running RR algorithm\n");
