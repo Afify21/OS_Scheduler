@@ -10,10 +10,11 @@ void runHPF(int ProcessesCount) {
     MinHeap *readyQueue = createMinHeap(MAX_PROCESSES);
     process *currentProcess = NULL;
     int receivedProcesses = 0;
+    int completedProcesses = 0;  // Track completed processes
     int lastClockTime = -1;
-    int remainingTime = 0; // Track remaining time of current process
+    int remainingTime = 0;
 
-    while (receivedProcesses < ProcessesCount || !HeapisEmpty(readyQueue) || currentProcess) {
+    while (completedProcesses < ProcessesCount || !HeapisEmpty(readyQueue) || currentProcess) {
         struct msgbuff nmsg;
         ssize_t rec = msgrcv(SendQueueID, &nmsg, sizeof(nmsg.msg), 0, IPC_NOWAIT);
 
@@ -32,6 +33,8 @@ void runHPF(int ProcessesCount) {
                 remainingTime--;
                 if (remainingTime <= 0) {
                     printf("HPF: Process %d completed at time %d\n", currentProcess->id, currentTime);
+                    completedProcesses++;  // Increment completed counter
+                    free(currentProcess);
                     currentProcess = NULL;
                 }
             }
@@ -46,10 +49,10 @@ void runHPF(int ProcessesCount) {
                       currentProcess->id, currentTime, remainingTime);
             }
         }
-        usleep(1000); // Reduce CPU usage
+        usleep(1000);
     }
 
     destroyMinHeap(readyQueue);
-    printf("HPF: All processes completed\n");
+    printf("HPF: All %d processes completed\n", completedProcesses);
 }
 #endif

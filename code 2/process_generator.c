@@ -185,4 +185,5 @@ void sendInfo(void) {
     }
 
     printf("All processes have been sent to the scheduler\n");
+    while(1);
 }
