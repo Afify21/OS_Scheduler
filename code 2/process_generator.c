@@ -75,26 +75,26 @@ void setUP_CLK_SCHDLR(void) {
     sleep(1);
 }
 
-// void sendInfo(void) { ///////////////////////////RR
-//     struct msgbuff buf;
-//     int sent = 0;
-//     while (sent < NumberOfP) {
-//         int clk = getClk();
-//         if (processList[sent].arrivaltime <= clk) {
-//             buf.mtype = 1;  // a single arrival queue type
-//             memcpy(&buf.msg, &processList[sent], sizeof(processList[sent]));
-//             if (msgsnd(ReadyQueueID, &buf, sizeof(buf.msg), 0) == -1) {
-//                 perror("msgsnd ReadyQueue");
-//             }
-//             sent++;
-//         } else {
-//             usleep(100000);
-//         }
-//     }
-//     // Keep generator alive so IPC remains valid
-//     for (;;)
-//         pause();
-// }
+void sendInfo2(void) { ///////////////////////////RR
+    struct msgbuff buf;
+    int sent = 0;
+    while (sent < NumberOfP) {
+        int clk = getClk();
+        if (processList[sent].arrivaltime <= clk) {
+            buf.mtype = 1;  // a single arrival queue type
+            memcpy(&buf.msg, &processList[sent], sizeof(processList[sent]));
+            if (msgsnd(ReadyQueueID, &buf, sizeof(buf.msg), 0) == -1) {
+                perror("msgsnd ReadyQueue");
+            }
+            sent++;
+        } else {
+            usleep(100000);
+        }
+    }
+    // Keep generator alive so IPC remains valid
+    for (;;)
+        pause();
+}
 void sendInfo(void) {           ///////////////////////////HPF and SRTN
     int currentProcess = 0;
     struct msgbuff buf;
@@ -155,6 +155,9 @@ int main(int argc, char *argv[]) {
 
     chooseAlgorithm();
     setUP_CLK_SCHDLR();
+    if(quantum != -1)
+        sendInfo2();
+    else
     sendInfo();
 
     destroyClk(true);
