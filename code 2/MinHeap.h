@@ -130,7 +130,7 @@ void insertMinHeap_HPF(MinHeap *minHeap, process p) {
     minHeap->arr[index] = p;
 
     while (index != 0 && 
-           minHeap->arr[Parent(index)].priority > minHeap->arr[index].priority) {
+           minHeap->arr[Parent(index)].priority >=minHeap->arr[index].priority) {
         process temp = minHeap->arr[index];
         minHeap->arr[index] = minHeap->arr[Parent(index)];
         minHeap->arr[Parent(index)] = temp;
