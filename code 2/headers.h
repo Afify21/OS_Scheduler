@@ -42,40 +42,12 @@ typedef struct process
 
 } process;
 
-extern process processList[MAX_PROCESSES]; // Declare processList as extern
+process processList[MAX_PROCESSES]; // Declare processList as extern
 struct msgbuff
 {
     long mtype;
     int msg;
 };
-int *Synchro;
-
-int getSync()
-{
-    return *Synchro;
-}
-void setSync(int val)
-{
-    *Synchro = val;
-}
-
-void initSync()
-{
-    key_t key = ftok("keys/Syncman", 65);
-    int Syncid = shmget(key, 4, IPC_CREAT | 0644);
-    Synchro = (int *)shmat(Syncid, (void *)0, 0);
-}
-void destroySync(bool delete)
-{
-    shmdt(Synchro);
-    if (delete)
-    {
-        key_t key = ftok("keys/Syncman", 65);
-        int Syncid = shmget(key, 4, 0444);
-        shmctl(Syncid, IPC_RMID, NULL);
-    }
-}
-
 //==============================
 // Clock Communication Functions
 //==============================
@@ -171,22 +143,21 @@ void logEvent(int time, int pid, const char *state, int arrival, int total, int 
     fprintf(log, "At time %d process %d %s\n", time, pid, state);
     fclose(log);
 }
-void DefineKeysProcess(int *SendQueueID, int *ReceiveQueueID)
-{
-    key_t sendKey = ftok("keyfile", 65);
-    key_t receiveKey = ftok("keyfile", 66);
+// void DefineKeysProcess(int *SendQueueID, int *ReceiveQueueID)
+// {
+//     key_t sendKey = ftok("keyfile", 65);
+//     key_t receiveKey = ftok("keyfile", 66);
 
-    *SendQueueID = msgget(sendKey, 0666 | IPC_CREAT);
-    *ReceiveQueueID = msgget(receiveKey, 0666 | IPC_CREAT);
+//     *SendQueueID = msgget(sendKey, 0666 | IPC_CREAT);
+//     *ReceiveQueueID = msgget(receiveKey, 0666 | IPC_CREAT);
 
-    if (*SendQueueID == -1 || *ReceiveQueueID == -1)
-    {
-        perror("Error creating message queues");
-        exit(-1);
-    }
-
-}
-void DefineKeys(int *ReadyQueueID, int *SendQueueID, int *ReceiveQueueID, int *GUIID, int *ArrivedProcessesID)
+//     if (*SendQueueID == -1 || *ReceiveQueueID == -1)
+//     {
+//         perror("Error creating message queues");
+//         exit(-1);
+//     }
+// }
+void DefineKeys(int *ReadyQueueID, int *SendQueueID, int *ReceiveQueueID)
 {
     key_t ReadyQueueKey;
     ReadyQueueKey = ftok("keys/Funnyman", 'A');
@@ -214,23 +185,8 @@ void DefineKeys(int *ReadyQueueID, int *SendQueueID, int *ReceiveQueueID, int *G
         perror("Error in create message queue");
         exit(-1);
     }
-    key_t GUIKey = ftok("keys/Guiman", 'A');
-    *GUIID = msgget(GUIKey, 0666 | IPC_CREAT);
-    if (*GUIID == -1)
-    {
-        perror("Error in create message queue");
-        exit(-1);
-    }
-    key_t ArrivedProcessesKey = ftok("keys/Guiman", 'B');
-    *ArrivedProcessesID = msgget(ArrivedProcessesKey, 0666 | IPC_CREAT);
-    if (*ArrivedProcessesID == -1)
-    {
-        perror("Error in create message queue");
-        exit(-1);
-    }
+    // Initialize GUI queue to send process information to GUI
 }
-
-#endif 
 
 //==============================
 // Scheduling Algorithm Chooser
@@ -257,6 +213,7 @@ void initSync()
     int Syncid = shmget(key, 4, IPC_CREAT | 0644);
     Synchro = (int *)shmat(Syncid, (void *)0, 0);
 }
+
 void destroySync(bool delete)
 {
     shmdt(Synchro);
@@ -267,50 +224,4 @@ void destroySync(bool delete)
         shmctl(Syncid, IPC_RMID, NULL);
     }
 }
-
-void DefineKeys(int *ReadyQueueID, int *SendQueueID, int *ReceiveQueueID, int *GUIID, int *ArrivedProcessesID)
-{
-    key_t ReadyQueueKey;
-    ReadyQueueKey = ftok("keys/Funnyman", 'A');
-    *ReadyQueueID = msgget(ReadyQueueKey, 0666 | IPC_CREAT);
-    if (*ReadyQueueID == -1)
-    {
-        perror("Error in create message queue");
-        exit(-1);
-    }
-    // Initialize Send queue to send turn to process
-    key_t SendQueueKey;
-    SendQueueKey = ftok("keys/Sendman", 'A');
-    *SendQueueID = msgget(SendQueueKey, 0666 | IPC_CREAT);
-    if (*SendQueueID == -1)
-    {
-        perror("Error in create message queue");
-        exit(-1);
-    }
-    // Initialize Receive queue to receive remaining time from process
-    key_t ReceiveQueueKey;
-    ReceiveQueueKey = ftok("keys/Receiveman", 'A');
-    *ReceiveQueueID = msgget(ReceiveQueueKey, 0666 | IPC_CREAT);
-    if (*ReceiveQueueID == -1)
-    {
-        perror("Error in create message queue");
-        exit(-1);
-    }
-    key_t GUIKey = ftok("keys/Guiman", 'A');
-    *GUIID = msgget(GUIKey, 0666 | IPC_CREAT);
-    if (*GUIID == -1)
-    {
-        perror("Error in create message queue");
-        exit(-1);
-    }
-    key_t ArrivedProcessesKey = ftok("keys/Guiman", 'B');
-    *ArrivedProcessesID = msgget(ArrivedProcessesKey, 0666 | IPC_CREAT);
-    if (*ArrivedProcessesID == -1)
-    {
-        perror("Error in create message queue");
-        exit(-1);
-    }
-}
-
-#endif HEADERS_H
-
+#endif

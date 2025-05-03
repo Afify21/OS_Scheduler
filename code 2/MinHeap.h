@@ -15,7 +15,7 @@ typedef struct MinHeap {
 // --- Core Functions ---
 MinHeap *createMinHeap(int capacity);
 void destroyMinHeap(MinHeap *minHeap);
-int isEmpty(MinHeap *minHeap);
+//int isEmpty(MinHeap *minHeap);
 
 // --- Heap Operations ---
 void insertMinHeap_SRTN(MinHeap *minHeap, process p);  // For SRTN (Shortest Remaining Time)
@@ -54,9 +54,9 @@ void destroyMinHeap(MinHeap *minHeap) {
     }
 }
 
-int isEmpty(MinHeap *minHeap) {
-    return minHeap->currentSize == 0;
-}
+// int isEmpty(MinHeap *minHeap) {
+//     return minHeap->currentSize == 0;
+// }
 
 // --- Heapify Functions ---
 void MinHeapifySRTN(MinHeap *minHeap, int index) {
