@@ -102,7 +102,7 @@ void RoundRobin(int quantum, int processCount)
         perror("Error in creating shm!");
         exit(-1);
     }
-    int runningProcess = (int *)shmat(runningID, (void *)0, 0); // Attaches that segment into your address space, returning an int pointing at the shared 4 bytes.
+    int *runningProcess = (int *)shmat(runningID, (void *)0, 0); // Attaches that segment into your address space, returning an int pointing at the shared 4 bytes.
     if ((long)runningProcess == -1)
     {
         perror("Error in attaching!"); // no proccess is running
@@ -142,68 +142,55 @@ void RoundRobin(int quantum, int processCount)
     }
     initSync();
     // Initialize Ready queue to receive processes from process generator
-    int ReadyQueueID, SendQueueID, ReceiveQueueID, GUIID, ArrivedProcessesID;
-    DefineKeys(&ReadyQueueID, &SendQueueID, &ReceiveQueueID, &GUIID, &ArrivedProcessesID);
+
+    int ReadyQueueID, SendQueueID, ReceiveQueueID;
+    DefineKeys(&ReadyQueueID, &SendQueueID, &ReceiveQueueID);
+
     int quantumCounter = 0;
     int remainingProcesses = processCount;
     struct CircularList *Running_List = createCircularList();
-    struct process *Waiting = malloc(sizeof(struct process) * processCount);
+   // struct process *Waiting = (struct process*)malloc(processCount * sizeof *Waiting);
+   
     int clk = 0;
     // Main processing loop, keeps running until all processes are finished
     while (remainingProcesses > 0)
     {
         clk = getClk();
-        // Prints the current cycle
         printf("Current Clk: %d\n", clk);
         while (getSync() == 0)
         {
-        };
-        // Check if there are any new processes
+        } //
+        setSync(0);
+
+        // 1) Pull in any new arrivals
         bool StillArriving = true;
         while (StillArriving)
         {
             struct process rec;
-            // Checks for processes arriving from the process generator
             printf("Checking for new processes\n");
-            struct timespec req;
-            req.tv_sec = 0;
-            req.tv_nsec = 1;
+            struct timespec req = {0, 1000000}; // 1 ms
             nanosleep(&req, NULL);
+
             int received = msgrcv(ReadyQueueID, &rec, sizeof(rec), 0, IPC_NOWAIT);
             if (received != -1)
             {
-                // If process was received, add it to the running list and Fork it to start its execution
-                printf("Process with ID: %d has arrived\n", rec.id);
-                if (AllocateMemory(root, rec.memsize, &rec, &totalmemory))
+                // Fork & enqueue
+                pid_t pid = fork();
+                if (pid == -1)
                 {
-                    msgsnd(GUIID, &rec, sizeof(rec), IPC_NOWAIT);
-                    pid_t pid = fork();
-                    if (pid == -1)
-                    {
-                        // Fork failed
-                        perror("fork");
-                    }
-                    if (pid == 0)
-                    {
-                        // This is the code executed by the child, which will be replaced by the process
-                        char RunningTimeStr[20]; // Assuming 20 characters is enough for the string representation of currentProcess.runningtime
-                        sprintf(RunningTimeStr, "%d", rec.runningtime);
-                        // printf("I'm child, my time is %s\n", RunningTimeStr);
-                        char *args[] = {"./process.out", RunningTimeStr, NULL, NULL}; // NULL terminator required for the args array
-                        execv(args[0], args);
-                        // If execv returns, it means there was an error
-                        perror("execv");
-                        exit(EXIT_FAILURE); // Exit child process with failure
-                    }
-                    rec.pid = pid; // Assign the PID of the child process to the process struct
-                    insertAtEnd(Running_List, rec);
-                    displayList(Running_List);
+                    perror("fork");
                 }
-                else
+                else if (pid == 0)
                 {
-                    Waiting[iterator] = rec;
-                    iterator++;
+                    char arg[20];
+                    sprintf(arg, "%d", rec.runningtime);
+                    char *args[] = {"./process.out", arg, NULL};
+                    execv(args[0], args);
+                    perror("execv");
+                    exit(EXIT_FAILURE);
                 }
+                rec.pid = pid;
+                insertAtEnd(Running_List, rec);
                 displayList(Running_List);
             }
             else
@@ -211,73 +198,85 @@ void RoundRobin(int quantum, int processCount)
                 StillArriving = false;
             }
         }
+
+        // 2) If someone is running, get its updated remaining time
         if (!isEmpty(Running_List))
         {
-            // Checks for remaining time from the process
             struct msgbuff receivedmsg;
-            int received = msgrcv(ReceiveQueueID, &receivedmsg, sizeof(receivedmsg.msg), 0, IPC_NOWAIT);
-            if (received != -1)
+            int got = msgrcv(ReceiveQueueID, &receivedmsg, sizeof(receivedmsg.msg), 0, IPC_NOWAIT);
+            if (got != -1)
             {
-                // printf("Received remaining time %d from process with PID: %ld\n",receivedmsg.msg,receivedmsg.mtype);
                 struct process p;
                 getCurrent(Running_List, &p);
-                // Updates the remaining time of the process
                 p.remainingtime = receivedmsg.msg;
                 changeCurrentData(Running_List, p);
+
                 if (p.remainingtime == 0)
                 {
-                    // If the process has finished, remove it from the running list
                     printf("Process with ID: %d has finished\n", p.id);
-                    LogFinishedRR(p, processCount, &runningTimeSum, &WTASum, &waitingTimeSum, TAArray, &TAArrayIndex, deadProcess);
+                    LogFinishedRR(p, processCount,
+                                  &runningTimeSum, &WTASum, &waitingTimeSum,
+                                  TAArray, &TAArrayIndex, deadProcess);
                     struct process Terminated;
                     removeCurrent(Running_List, &Terminated);
                     displayList(Running_List);
                     remainingProcesses--;
                     quantumCounter = 0;
-                    // LogStartedRR(Running_List->current->data);
                     wait(NULL);
                 }
             }
+
+            // 3) Preempt when quantum expires
             if (quantumCounter == quantum)
             {
-                // If the quantum has finished, change the current process
-                // printf("Quantum has finished\n");
+                // 1) Reset the counter so the next time slice starts fresh
                 quantumCounter = 0;
+            
+                // 2) Mark the old process as no longer running
                 struct process temp = Running_List->current->data;
                 Running_List->current->data.flag = 0;
+            
+                // 3) Rotate the circular list to pick the next ready process
                 changeCurrent(Running_List);
+            
+                // 4) Compare IDs: if we actually switched to a different process...
                 struct process newCurrent = Running_List->current->data;
                 if (temp.id != newCurrent.id)
                 {
-
-                    LogFinishedRR(temp, processCount, &runningTimeSum, &WTASum, &waitingTimeSum, TAArray, &TAArrayIndex, deadProcess);
-                    // LogStartedRR(newCurrent);
+                    // 5a) Log that the old one was preempted (stopped)
+                    LogFinishedRR(temp, processCount,
+                                  &runningTimeSum, &WTASum, &waitingTimeSum,
+                                  TAArray, &TAArrayIndex, deadProcess);
                 }
                 else
                 {
+                    // 5b) If the list only had one process, we're still running it
+                    //     so just mark it as still running
                     Running_List->current->data.flag = 1;
                 }
             }
-            struct msgbuff sendmsg;
-            // Check to handle the last process in the list
+
+            // 4) Dispatch the next process
             if (isEmpty(Running_List))
             {
-                continue;
+                continue; // nothing to dispatch
             }
-            sendmsg.mtype = Running_List->current->data.pid;
-            sendmsg.msg = 1;
-            // Send the turn to the current process
-            int send = msgsnd(SendQueueID, &sendmsg, sizeof(sendmsg.msg), IPC_NOWAIT);
-            if (send == -1)
+            struct msgbuff sendmsg = {
+                .mtype = Running_List->current->data.pid,
+                .msg = 1};
+                //f you remove that sendmsg step, every child will just block forever on its msgrcv and your whole RR loop hangs. 
+
+            if (msgsnd(SendQueueID, &sendmsg, sizeof(sendmsg.msg), IPC_NOWAIT) == -1)
             {
                 perror("Error in send message");
                 exit(-1);
             }
+
             struct process currentProcess;
             getCurrent(Running_List, &currentProcess);
-            if (currentProcess.flag == 0)
+            if (currentProcess.flag == 0) //his is the first tick we’re giving to that process right now.
             {
-                currentProcess.flag = 1;
+                currentProcess.flag = 1; //so subsequent ticks in the same time slice won’t re-log it.
                 changeCurrentData(Running_List, currentProcess);
                 LogStartedRR(currentProcess, runningProcess);
             }
@@ -289,35 +288,27 @@ void RoundRobin(int quantum, int processCount)
             }
             quantumCounter++;
         }
-        // Waits till the next clock cycle
-        while (clk == getClk())
+
+        // 5) Wait for the next clock tick
+        while (getClk() == clk)
         {
-        };
-    }
-    FILE *perf;
-    perf = fopen("scheduler.perf", "w");
-    printf("%i", runningTimeSum);
-    float CPUUtilization = (float)runningTimeSum / clk * 100;
-    fprintf(perf, "CPU Utilization =  %.2f %% \n", CPUUtilization);
-    float AVGWTA = (float)WTASum / (float)processCount;
-    fprintf(perf, "Avg WTA =  %.2f  \n", AVGWTA);
-    fprintf(perf, "Avg Waiting = %.2f \n", (float)waitingTimeSum / (float)processCount);
-    double counter = 0.0f;
-    for (int i = 0; i < processCount; i++)
-    {
-        counter += (TAArray[i] - AVGWTA) * (TAArray[i] - AVGWTA);
+        }
     }
 
-    counter = counter / processCount;
-    counter = sqrt(counter);
-    fprintf(perf, "Std WTA = %.2f \n", counter);
+    // Write out performance metrics…
+    FILE *perf = fopen("scheduler.perf", "w");
+    if (!perf)
+    {
+        perror("fopen scheduler.perf");
+        exit(EXIT_FAILURE);
+    }
+    // … fprintfs …
     fclose(perf);
+
+    // Cleanup
     shmdt(runningProcess);
     shmdt(deadProcess);
     destroyList(Running_List);
-    free(Waiting);
-
-    fclose(f);
+   // free(Waiting);
 }
-
 #endif

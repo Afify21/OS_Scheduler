@@ -16,10 +16,12 @@ int main(int argc, char *argv[])
     // Attach to the simulated clock
     initClk();
     // Prepare our two message-queue handles
-    int SendQueueID, ReceiveQueueID;
-    DefineKeysProcess(&SendQueueID, &ReceiveQueueID); // calls msgget() twice
+    int SendQueueID, ReceiveQueueID ,ReadyQueueID;
+    DefineKeys(&ReadyQueueID,&SendQueueID, &ReceiveQueueID); // calls msgget() twice
     // SendQueueID:   scheduler → process “here’s your turn”
     // ReceiveQueueID: process → scheduler “here’s my remaining time”
+ //ready queue hena mlosh lazma 
+
 
     // Initialize our remaining-time counter
     int remainingTime = atoi(argv[1]);
@@ -43,7 +45,10 @@ int main(int argc, char *argv[])
             sizeof(buf.msg), // only the payload size
             getpid(),        // filter: mtype must match our PID
             0                // blocking receive
-        );
+        );  
+        //Handshake mechanism
+//In your process.c each child sits blocked in
+//waiting for a message whose mtype equals its PID.
         if (received != -1) // if no error
         {
             // We got the “go” for one tick
