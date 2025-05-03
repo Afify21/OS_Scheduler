@@ -54,9 +54,9 @@ void destroyMinHeap(MinHeap *minHeap) {
     }
 }
 
-// int isEmpty(MinHeap *minHeap) {
-//     return minHeap->currentSize == 0;
-// }
+int HeapisEmpty(MinHeap *minHeap) {
+    return minHeap->currentSize == 0;
+}
 
 // --- Heapify Functions ---
 void MinHeapifySRTN(MinHeap *minHeap, int index) {

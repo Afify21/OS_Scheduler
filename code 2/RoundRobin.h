@@ -208,7 +208,7 @@ void RoundRobin(int quantum, int processCount)
             {
                 struct process p;
                 getCurrent(Running_List, &p);
-                p.remainingtime = receivedmsg.msg;
+                p.remainingtime = receivedmsg.msg.remainingtime;
                 changeCurrentData(Running_List, p);
 
                 if (p.remainingtime == 0)

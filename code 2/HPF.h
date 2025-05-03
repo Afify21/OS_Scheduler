@@ -11,7 +11,7 @@ void runHPF(int ProcessesCount) {
     int receivedProcesses = 0;
     int lastClockTime = -1;
 
-    while (receivedProcesses < ProcessesCount || !isEmpty(readyQueue) || currentProcess) {
+    while (receivedProcesses < ProcessesCount || !HeapisEmpty(readyQueue) || currentProcess) {
         struct msgbuff nmsg;
         ssize_t rec = msgrcv(SendQueueID, &nmsg, sizeof(nmsg.msg), 0, IPC_NOWAIT);
         if (rec == -1) {
@@ -27,7 +27,7 @@ void runHPF(int ProcessesCount) {
             lastClockTime = currentTime;
 
             // Schedule a new process if none is running
-            if (!currentProcess && !isEmpty(readyQueue)) {
+            if (!currentProcess && !HeapisEmpty(readyQueue)) {
                 process p = deleteMinHPF(readyQueue);
                 currentProcess = &p;
 
