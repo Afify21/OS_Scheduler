@@ -14,18 +14,19 @@ int main(int argc, char *argv[])
         return -1;
     }
     printf("[DEBUG] Process %d started with runtime %s\n", getpid(), argv[1]);
+    
     // Attach to the simulated clock
     initClk();
+    
     // Prepare our two message-queue handles
     int SendQueueID, ReceiveQueueID, ReadyQueueID;
-    DefineKeys(&ReadyQueueID, &SendQueueID, &ReceiveQueueID); // calls msgget() twice
-    // SendQueueID:   scheduler → process "here's your turn"
-    // ReceiveQueueID: process → scheduler "here's my remaining time"
-    // ready queue hena mlosh lazma
-
+    DefineKeys(&ReadyQueueID, &SendQueueID, &ReceiveQueueID);
+    
     // Initialize our remaining-time counter
     int remainingTime = atoi(argv[1]);
     int currentClock = getClk();
+    int lastClock = currentClock;
+    int isRunning = 0; // Flag to track if process is currently running
 
     // Main loop run until we've used up all our ticks
     while (remainingTime > 0)
@@ -36,45 +37,62 @@ int main(int argc, char *argv[])
         // Use a single buffer for both receiving and sending
         struct msgbuff buf;
 
-        printf("[DEBUG] Process %d waiting for msgrcv on SendQueueID\n", getpid());
-        // Wait for scheduler's message
+        // Check for messages from scheduler (non-blocking)
         int received = msgrcv(
             SendQueueID,
             &buf,
             sizeof(buf.msg),
             getpid(),
-            0);
-        printf("[DEBUG] Process %d msgrcv returned: %d\n", getpid(), received);
+            IPC_NOWAIT); // Use non-blocking to avoid deadlock
 
         if (received != -1)
         {
-            // We got the "go" for one tick
+            // We got the "go" signal - we are now running
+            isRunning = 1;
+            printf("[DEBUG] Process %d received run signal at clock time %d\n", getpid(), currentClock);
+        }
+
+        // If clock has advanced and we're running, decrement remaining time
+        if (currentClock > lastClock && isRunning)
+        {
+            // Update the time at which we last processed a clock tick
+            lastClock = currentClock;
+            
+            // Only decrement if we're running
             remainingTime--;
-            printf("[DEBUG] Process %d: Remaining time = %d\n", getpid(), remainingTime);
+            printf("[DEBUG] Process %d: Clock tick %d, Remaining time = %d\n", 
+                   getpid(), currentClock, remainingTime);
+            
+            // Send back the updated remaining time immediately after decrementing
+            buf.mtype = getpid();
+            buf.msg.remainingtime = remainingTime;
+            buf.msg.pid = getpid();
+            // Include the exact clock time when this update is happening
+            buf.msg.lasttime = currentClock;
+
+            if (msgsnd(ReceiveQueueID, &buf, sizeof(buf.msg), 0) == -1)
+            {
+                perror("Error sending message back to scheduler");
+                exit(-1);
+            }
+            printf("[DEBUG] Process %d sent update at clock %d: remaining time = %d\n", 
+                   getpid(), currentClock, remainingTime);
+            
+            // If we have no more time, we're done
+            if (remainingTime <= 0)
+            {
+                printf("[DEBUG] Process %d completed execution at clock time %d\n", 
+                       getpid(), currentClock);
+                break;
+            }
         }
 
-        // Send back the updated remaining time
-        buf.mtype = getpid();
-        buf.msg.remainingtime = remainingTime;
-        buf.msg.id = getpid();
-
-        printf("[DEBUG] Process %d sending msgsnd to ReceiveQueueID\n", getpid());
-        if (msgsnd(ReceiveQueueID, &buf, sizeof(buf.msg), 0) == -1)
-        {
-            perror("Error sending message back to scheduler");
-            exit(-1);
-        }
-        printf("[DEBUG] Process %d sent message to scheduler\n", getpid());
-
-        // Busy-wait until the clock advances before looping again
-        while (currentClock == getClk())
-        {
-            usleep(1000); // Small sleep to reduce CPU usage
-        }
+        // Small sleep to reduce CPU usage
+        usleep(1000);
     }
 
     // We're done—detach from the clock service and exit
     printf("[DEBUG] Process %d finished and detaching from clock\n", getpid());
     destroyClk(false);
     return 0;
-} // trem
+}

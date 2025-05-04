@@ -8,6 +8,7 @@
 #include <string.h>
 
 // Globals
+pid_t Scheduler ;
 int algoChoice;
 int quantum = -1;
 int ReadyQueueID, SendQueueID, ReceiveQueueID;
@@ -57,13 +58,14 @@ void setUP_CLK_SCHDLR(void) {
         perror("clk.execl");
         _exit(1);
     }
-    sleep(1);
+    usleep(100000);
 
     // Init clock in parent
     initClk();
 
     // Fork scheduler
-    if (fork() == 0) {
+    Scheduler = fork();
+    if (Scheduler== 0) {
         char p[16], a[4], q[4];
         sprintf(p, "%d", NumberOfP);
         sprintf(a, "%d", algoChoice);
@@ -72,7 +74,7 @@ void setUP_CLK_SCHDLR(void) {
         perror("sched.execl");
         _exit(1);
     }
-    sleep(1);
+    usleep(100000);
 }
 
 void sendInfo2(void) { ///////////////////////////RR
@@ -156,6 +158,7 @@ int main(int argc, char *argv[]) {
         sendInfo2();
     else
     sendInfo();
+    waitpid(Scheduler, NULL, 0);
 
     destroyClk(true);
     return 0;
