@@ -70,11 +70,19 @@ int main(int argc, char *argv[])
             // Include the exact clock time when this update is happening
             buf.msg.lasttime = currentClock;
 
-            if (msgsnd(ReceiveQueueID, &buf, sizeof(buf.msg), 0) == -1)
-            {
-                perror("Error sending message back to scheduler");
+            // Try to send the message multiple times if needed
+            int retryCount = 0;
+            while (msgsnd(ReceiveQueueID, &buf, sizeof(buf.msg), 0) == -1 && retryCount < 3) {
+                perror("Error sending message back to scheduler, retrying...");
+                usleep(1000); // Small delay before retry
+                retryCount++;
+            }
+            
+            if (retryCount >= 3) {
+                perror("Failed to send message after multiple retries");
                 exit(-1);
             }
+            
             printf("[DEBUG] Process %d sent update at clock %d: remaining time = %d\n", 
                    getpid(), currentClock, remainingTime);
             
@@ -89,6 +97,17 @@ int main(int argc, char *argv[])
 
         // Small sleep to reduce CPU usage
         usleep(1000);
+    }
+
+    // Send final completion message
+    struct msgbuff finalBuf;
+    finalBuf.mtype = getpid();
+    finalBuf.msg.remainingtime = 0;
+    finalBuf.msg.pid = getpid();
+    finalBuf.msg.lasttime = getClk();
+    
+    if (msgsnd(ReceiveQueueID, &finalBuf, sizeof(finalBuf.msg), 0) == -1) {
+        perror("Error sending final completion message");
     }
 
     // We're done—detach from the clock service and exit
