@@ -27,17 +27,25 @@ float sumWTA = 0.0f;
         struct msgbuff nmsg;
         ssize_t rec = msgrcv(SendQueueID, &nmsg, sizeof(nmsg.msg), 0, IPC_NOWAIT);
 
-        if (rec != -1)
-        {
+        if (rec != -1) {
             printf("Scheduler: Received process %d at time %d\n", nmsg.msg.id, nmsg.msg.arrivaltime);
-            nmsg.msg.flag = 0;                        // Initialize flag for new processes
-            nmsg.msg.lasttime = nmsg.msg.arrivaltime; // Initialize lasttime
+            // Fork and execute process.out
+            pid_t pid = fork();
+            if (pid == 0) {
+                char runtimeArg[16];
+                sprintf(runtimeArg, "%d", nmsg.msg.runningtime);
+                execl("./process.out", "process.out", runtimeArg, NULL);
+                perror("execl failed");
+                _exit(1);
+            }
+            nmsg.msg.pid = pid; // Track the PID
+            nmsg.msg.flag = 0;
+            nmsg.msg.lasttime = nmsg.msg.arrivaltime;
             insertMinHeap_SRTN(readyQueue, nmsg.msg);
             receivedProcesses++;
             logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime,
                      nmsg.msg.runningtime, nmsg.msg.remainingtime,
                      0, 0, 0.0);
-                     
         }
 
         int currentTime = getClk() - 1;

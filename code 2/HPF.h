@@ -28,11 +28,22 @@ void runHPF(int ProcessesCount) {
 
         if (rec != -1) {
             printf("Scheduler: Received process %d at time %d\n", nmsg.msg.id, nmsg.msg.arrivaltime);
+            // Fork and execute process.out
+            pid_t pid = fork();
+            if (pid == 0) {
+                char runtimeArg[16];
+                sprintf(runtimeArg, "%d", nmsg.msg.runningtime);
+                execl("./process.out", "process.out", runtimeArg, NULL);
+                perror("execl failed");
+                _exit(1);
+            }
+            nmsg.msg.pid = pid; // Track the PID
             insertMinHeap_HPF(readyQueue, nmsg.msg);
             receivedProcesses++;
             logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime, 
                      nmsg.msg.runningtime, nmsg.msg.runningtime, 0, 0, 0);
         }
+
 
         int currentTime = getClk()-1;
         if (currentTime != lastClockTime) {
