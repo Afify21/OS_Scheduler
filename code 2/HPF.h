@@ -21,10 +21,10 @@ void runHPF(int ProcessesCount) {
         ssize_t rec = msgrcv(SendQueueID, &nmsg, sizeof(nmsg.msg), 0, IPC_NOWAIT);
 
         if (rec != -1) {
-            printf("Scheduler: Received process %d at time %d\n", nmsg.msg.id, getClk());
+            printf("Scheduler: Received process %d at time %d\n", nmsg.msg.id, nmsg.msg.arrivaltime);
             insertMinHeap_HPF(readyQueue, nmsg.msg);
             receivedProcesses++;
-            logEvent(getClk(), nmsg.msg.id, "arrived", nmsg.msg.arrivaltime, 
+            logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime, 
                      nmsg.msg.runningtime, nmsg.msg.runningtime, 0, 0, 0);
         }
 

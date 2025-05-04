@@ -108,11 +108,8 @@ void sendInfo(void) {           ///////////////////////////HPF and SRTN
         if (processList[currentProcess].arrivaltime <= currentTime)
         {
             buf.mtype = processList[currentProcess].id;
-            buf.msg.id = processList[currentProcess].id;
-            buf.msg.remainingtime= processList[currentProcess].remainingtime;
-            buf.msg.priority = processList[currentProcess].priority;
-            buf.msg.runningtime = processList[currentProcess].runningtime;
-            buf.msg.arrivaltime = processList[currentProcess].arrivaltime;
+            buf.msg = processList[currentProcess]; // Copy entire struct
+            buf.msg.lasttime = currentTime;
 
 
             if (msgsnd(SendQueueID, &buf, sizeof(buf.msg), 0) == -1)

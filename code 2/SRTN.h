@@ -22,14 +22,14 @@ void runSRTN(int ProcessesCount)
 
         if (rec != -1)
         {
-            printf("Scheduler: Received process %d at time %d\n", nmsg.msg.id, getClk());
+            printf("Scheduler: Received process %d at time %d\n", nmsg.msg.id, nmsg.msg.arrivaltime);
             nmsg.msg.flag = 0;                        // Initialize flag for new processes
             nmsg.msg.lasttime = nmsg.msg.arrivaltime; // Initialize lasttime
             insertMinHeap_SRTN(readyQueue, nmsg.msg);
             receivedProcesses++;
-            logEvent(getClk(), nmsg.msg.id, "arrived", nmsg.msg.arrivaltime,
+            logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime,
                      nmsg.msg.runningtime, nmsg.msg.remainingtime,
-                     getClk() - nmsg.msg.arrivaltime, 0, 0.0);
+                     nmsg.msg.arrivaltime - nmsg.msg.arrivaltime, 0, 0.0);
         }
 
         int currentTime = getClk() - 1;
@@ -49,7 +49,7 @@ void runSRTN(int ProcessesCount)
                     printf("SRTN: Process %d completed at time %d\n", currentProcess->id, currentTime);
                     logEvent(currentTime, currentProcess->id, "finished",
                              currentProcess->arrivaltime, currentProcess->runningtime,
-                             0, total_wait, TA, WTA);
+                             0, TA-currentProcess->runningtime, TA, WTA);
                     free(currentProcess);
                     currentProcess = NULL;
                     completedProcesses++;
