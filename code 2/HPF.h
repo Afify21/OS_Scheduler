@@ -15,6 +15,12 @@ void runHPF(int ProcessesCount) {
     int completedProcesses = 0;
     int lastClockTime = -1;
     int remainingTime = 0;
+    float TAs[ProcessesCount];         // Turnaround times
+    float WTAs[ProcessesCount];        // Weighted turnaround times
+    int taIdx = 0;
+    int sumRun = 0;
+    int sumWait = 0;
+    float sumWTA = 0.0f;
 
     while (completedProcesses < ProcessesCount || !HeapisEmpty(readyQueue) || currentProcess) {
         struct msgbuff nmsg;
@@ -44,9 +50,16 @@ void runHPF(int ProcessesCount) {
                             0, TA - currentProcess->runningtime, TA, WTA);
                     printf("HPF: Process %d completed at time %d (TA: %.0f, WTA: %.2f)\n", 
                           currentProcess->id, currentTime, TA, WTA);
-                    free(currentProcess);
-                    currentProcess = NULL;
-                    completedProcesses++;
+                          sumRun += currentProcess->runningtime;
+                          sumWait +=( TA-currentProcess->runningtime);
+                          sumWTA += WTA;
+                          TAs[taIdx]  = TA;
+                          WTAs[taIdx] = WTA;
+                          taIdx++;
+                          free(currentProcess);
+                          currentProcess = NULL;
+                          completedProcesses++;
+                          taIdx++;
                 }
             }
 
@@ -65,6 +78,16 @@ void runHPF(int ProcessesCount) {
         }
         usleep(1000); // Prevent busy-waiting
     }
+    FILE *perf = fopen("scheduler.perf", "w");
+        if (perf) {
+            fprintf(perf, "CPU Util=%.2f%%\n", sumRun / (float)lastClockTime * 100);
+            fprintf(perf, "Avg TA=%.2f\n", (sumWait + sumRun) / (float)ProcessesCount);
+            fprintf(perf, "Avg WTA=%.2f\n", sumWTA / ProcessesCount);
+            fprintf(perf, "Avg Wait=%.2f\n", (float)sumWait / ProcessesCount);
+            fclose(perf);
+        } else {
+            perror("fopen scheduler.perf");
+        }
 
     destroyMinHeap(readyQueue);
     printf("HPF: All %d processes completed\n", completedProcesses);

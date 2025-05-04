@@ -5,8 +5,15 @@
 #include <errno.h>
 #include <string.h>
 
+
 void runSRTN(int ProcessesCount)
 {
+    float TAs[ProcessesCount];         // Turnaround times
+float WTAs[ProcessesCount];        // Weighted turnaround times
+int taIdx = 0;
+int sumRun = 0;
+int sumWait = 0;
+float sumWTA = 0.0f;
     printf("SRTN: Starting with %d processes\n", ProcessesCount);
 
     MinHeap *readyQueue = createMinHeap(MAX_PROCESSES);
@@ -29,7 +36,8 @@ void runSRTN(int ProcessesCount)
             receivedProcesses++;
             logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime,
                      nmsg.msg.runningtime, nmsg.msg.remainingtime,
-                     nmsg.msg.arrivaltime - nmsg.msg.arrivaltime, 0, 0.0);
+                     0, 0, 0.0);
+                     
         }
 
         int currentTime = getClk() - 1;
@@ -50,9 +58,16 @@ void runSRTN(int ProcessesCount)
                     logEvent(currentTime, currentProcess->id, "finished",
                              currentProcess->arrivaltime, currentProcess->runningtime,
                              0, TA-currentProcess->runningtime, TA, WTA);
+                             sumRun += currentProcess->runningtime;
+                    sumWait +=( TA-currentProcess->runningtime);
+                    sumWTA += WTA;
+                    TAs[taIdx]  = TA;
+                    WTAs[taIdx] = WTA;
+                    taIdx++;
                     free(currentProcess);
                     currentProcess = NULL;
                     completedProcesses++;
+                    taIdx++;
                 }
             }
 
@@ -114,7 +129,21 @@ void runSRTN(int ProcessesCount)
         }
 
         usleep(1000);
+        
     }
+    
+        FILE *perf = fopen("scheduler.perf", "w");
+        if (perf) {
+            fprintf(perf, "CPU Util=%.2f%%\n", sumRun / (float)lastClockTime * 100);
+            fprintf(perf, "Avg TA=%.2f\n", (sumWait + sumRun) / (float)ProcessesCount);
+            fprintf(perf, "Avg WTA=%.2f\n", sumWTA / ProcessesCount);
+            fprintf(perf, "Avg Wait=%.2f\n", (float)sumWait / ProcessesCount);
+            fclose(perf);
+        } else {
+            perror("fopen scheduler.perf");
+        }
+    
+
 
     destroyMinHeap(readyQueue);
     printf("SRTN: All %d processes completed\n", completedProcesses);
