@@ -66,16 +66,15 @@ float sumWTA = 0.0f;
                     logEvent(currentTime, currentProcess->id, "finished",
                              currentProcess->arrivaltime, currentProcess->runningtime,
                              0, TA-currentProcess->runningtime, TA, WTA);
-                             sumRun += currentProcess->runningtime;
-                    sumWait +=( TA-currentProcess->runningtime);
+                    sumRun += currentProcess->runningtime;
+                    sumWait += (TA-currentProcess->runningtime);
                     sumWTA += WTA;
-                    TAs[taIdx]  = TA;
+                    TAs[taIdx] = TA;
                     WTAs[taIdx] = WTA;
                     taIdx++;
                     free(currentProcess);
                     currentProcess = NULL;
                     completedProcesses++;
-                    taIdx++;
                 }
             }
 
