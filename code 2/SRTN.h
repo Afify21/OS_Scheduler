@@ -43,9 +43,9 @@ float sumWTA = 0.0f;
             nmsg.msg.lasttime = nmsg.msg.arrivaltime;
             insertMinHeap_SRTN(readyQueue, nmsg.msg);
             receivedProcesses++;
-            logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime,
-                     nmsg.msg.runningtime, nmsg.msg.remainingtime,
-                     0, 0, 0.0);
+            // logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime,
+            //          nmsg.msg.runningtime, nmsg.msg.remainingtime,
+            //          0, 0, 0.0);
         }
 
         int currentTime = getClk() - 1;

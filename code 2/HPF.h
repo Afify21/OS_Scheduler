@@ -42,8 +42,8 @@ void runHPF(int ProcessesCount) {
             nmsg.msg.pid = pid; // Store PID for messaging
             insertMinHeap_HPF(readyQueue, nmsg.msg);
             receivedProcesses++;
-            logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime, 
-                     nmsg.msg.runningtime, nmsg.msg.runningtime, 0, 0, 0);
+            // logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime, 
+            //          nmsg.msg.runningtime, nmsg.msg.runningtime, 0, 0, 0);
         }
         int currentTime = getClk()-1;
 
