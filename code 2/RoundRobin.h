@@ -42,8 +42,8 @@ void RoundRobin(int quantum, int processCount)
     logf("#At time x process y state arr w total z remain y wait k\n");
 
     // Blocked-time counters per PID (indexed 1..processCount)
-    int *waitTimes = calloc(processCount + 1, sizeof(int));
-    if (!waitTimes)
+    int *waitTimes = calloc(processCount + 1, sizeof(int)); //Creates an array to track how long each process waits
+    if (!waitTimes) //initializes all to be 0 
     {
         perror("calloc waitTimes");
         return;
@@ -52,10 +52,10 @@ void RoundRobin(int quantum, int processCount)
     // Ready queue
     struct CircularList *rq = createCircularList();
     int remaining = processCount;
-    int lastClk = -1;
-    int tickCnt = 0;
+    int lastClk = -1;  //helps detect when the clock has advanced
+    int tickCnt = 0;  //current quantum  progress
 
-    // Performance metrics
+    // bn7sb el waited ta w el ta  34an el cpu utilization
     float TA[processCount], WTA[processCount];
     int taIdx = 0, sumRun = 0, sumWait = 0;
     float sumWTA = 0.0f;
@@ -70,11 +70,12 @@ void RoundRobin(int quantum, int processCount)
         if (clk == lastClk)
             continue;
         lastClk = clk;
-        int t = clk - 1;
+        int t = clk - 1;  //Waits until clock advances to ensure 1 second time slicing
 
         // 1) Enqueue arrivals
         struct msgbuff in;
-        while (msgrcv(ReadyQ, &in, sizeof(in.msg), 0, IPC_NOWAIT) != -1)
+        while (msgrcv(ReadyQ, &in, sizeof(in.msg), 0, IPC_NOWAIT) != -1)  //recieves all the arriving processes from the 
+        //message quueue  and gets the remaining time 
         {
             in.msg.flag = 0;
             in.msg.remainingtime = in.msg.runningtime;
@@ -82,7 +83,8 @@ void RoundRobin(int quantum, int processCount)
         }
 
         if (isEmpty(rq))
-            continue;
+            continue;  //heck if the ready queue is empty.
+            //If it is, the scheduler just skips this tick — nothing to do.
 
         // 2) Increment blocked time for all except head
         struct process head;
@@ -102,15 +104,19 @@ void RoundRobin(int quantum, int processCount)
         struct process cur;
         getCurrent(rq, &cur);
         printf("[RR] Dispatching P%d at t=%d\n", cur.id, t);
-        fflush(stdout);
+        fflush(stdout);//This line forces any output waiting in the buffer to be immediately written to the screen or output device.
+
 
         // Decrement remaining time and count CPU tick
         cur.remainingtime--;
         changeCurrentData(rq, cur);
         sumRun++;
+ //Decreases its remainingtime
+//Updates the queue
+//Increases total CPU runtim
 
         // Log start vs. resume
-        if (cur.flag == 0)
+        if (cur.flag == 0) //first time getting cpu time
         {
             logf(
                 "At time %d process %d started arr %d total %d remain %d wait %d\n",
@@ -126,7 +132,7 @@ void RoundRobin(int quantum, int processCount)
                 t, cur.id, cur.arrivaltime, cur.runningtime,
                 cur.remainingtime, waitTimes[cur.id]);
         }
-        tickCnt++;
+        tickCnt++; //increments the quantum counter to check against it fl akher 
 
         // 4) Finish detection
         if (cur.remainingtime == 0)
@@ -135,7 +141,7 @@ void RoundRobin(int quantum, int processCount)
             fflush(stdout);
             int turnaround = t - cur.arrivaltime;
             float wta = (float)turnaround / cur.runningtime;
-            int blocked = waitTimes[cur.id];
+            int blocked = waitTimes[cur.id]; //how long is it waiting in the queue
             logf(
                 "At time %d process %d finished arr %d total %d remain 0 wait %d TA %d WTA %.2f\n",
                 t, cur.id, cur.arrivaltime, cur.runningtime,
@@ -146,7 +152,11 @@ void RoundRobin(int quantum, int processCount)
             WTA[taIdx] = wta;
             taIdx++;
             removeCurrent(rq, NULL);
-            remaining--;
+            remaining--; //emoves it from the ready queue.
+           // Decreases the number of processes left.
+           // Resets tick counter.
+           // continue skips the rest of the loop — no need to preempt a process that just finished.
+            
             tickCnt = 0;
             continue; // skip preemption for finished
         }
@@ -155,7 +165,7 @@ void RoundRobin(int quantum, int processCount)
         if (tickCnt == quantum)
         {
             tickCnt = 0;
-            struct process prev;
+            struct process prev; //Retrieves the process about to be preempted.
             getCurrent(rq, &prev);
             changeCurrent(rq);
             logf(
