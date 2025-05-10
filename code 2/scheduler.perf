@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 CPU Util=90.00%
 Avg TA=7.38
 Avg WTA=1.86
@@ -6,3 +7,10 @@ Avg Wait=2.88
 =======
 CPU Util=100.00%Avg TA=31.75Avg WTA=4.38Avg Wait=24.12
 >>>>>>> 9ab113e (s)
+=======
+CPU Util=100.00%
+Avg TA=25.88
+Avg WTA=3.96
+Std WTA=2.61
+Avg Wait=18.25
+>>>>>>> 706efca (dd)

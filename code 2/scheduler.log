@@ -27,6 +27,7 @@ At time 39 process 8 started arr 35 total 2 remain 2 wait 4
 At time 41 process 8 finished arr 35 total 2 remain 0 wait 4 TA 6 WTA 3.00
 =======
 # Scheduler start at time 1
+<<<<<<< HEAD
 # algo=3, quantum=2
 #At time x process y state arr w total z remain y wait k
 At time 0 process 1 started arr 1 total 12 remain 11 wait 0
@@ -123,3 +124,11 @@ At time 59 process 6 resumed arr 22 total 10 remain 1 wait 29
 At time 60 process 6 resumed arr 22 total 10 remain 0 wait 29
 At time 60 process 6 finished arr 22 total 10 remain 0 wait 29 TA 38 WTA 3.80
 >>>>>>> 9ab113e (s)
+=======
+# algo=2, quantum=-1
+At time 1 process 1 arrived arr 1 total 12 remain 12 wait 0
+At time 0 process 1 started arr 1 total 12 remain 12 wait -1
+At time 2 process 2 arrived arr 2 total 8 remain 8 wait 0
+At time 2 process 1 stopped arr 1 total 12 remain 10 wait 2
+At time 2 process 2 started arr 2 total 8 remain 8 wait 0
+>>>>>>> 706efca (dd)

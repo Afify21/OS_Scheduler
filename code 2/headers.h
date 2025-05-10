@@ -13,8 +13,7 @@
 #include <sys/sem.h>
 #include <sys/msg.h>
 #include <sys/wait.h>
-#include <string.h>  
-
+#include <string.h>
 
 #define MAX_PROCESSES 100
 #define SHKEY 300
@@ -42,6 +41,7 @@ typedef struct process
     int turnaroundtime;
     int lasttime;
     int flag;
+    int memsize; // Memory size required by the process
 
 } process;
 
@@ -112,13 +112,14 @@ void readProcessesFromFile(FILE *f, int processCount)
 
     while (fgets(line, sizeof(line), f) && i < processCount)
     {
-        int id, arrival, runtime, priority;
-        if (sscanf(line, "%d\t%d\t%d\t%d", &id, &arrival, &runtime, &priority) == 4)
+        int id, arrival, runtime, priority, memsize;
+        if (sscanf(line, "%d\t%d\t%d\t%d\t%d", &id, &arrival, &runtime, &priority, &memsize) == 5)
         {
             processList[i].id = id;
             processList[i].arrivaltime = arrival;
             processList[i].runningtime = runtime;
             processList[i].priority = priority;
+            processList[i].memsize = memsize;
             processList[i].remainingtime = runtime;
             processList[i].starttime = -1;
             processList[i].endtime = -1;
@@ -130,7 +131,7 @@ void readProcessesFromFile(FILE *f, int processCount)
             processList[i].lasttime = -1;
             processList[i].flag = 0;
             printf("Process %d:\t", i);
-            printf("%d\t%d\t%d\t%d\n", processList[i].id, processList[i].arrivaltime, processList[i].runningtime, processList[i].priority);
+            printf("%d\t%d\t%d\t%d\t%d\n", processList[i].id, processList[i].arrivaltime, processList[i].runningtime, processList[i].priority, processList[i].memsize);
             i++;
         }
     }
@@ -140,13 +141,18 @@ void readProcessesFromFile(FILE *f, int processCount)
         fprintf(stderr, "Warning: expected %d processes, but read %d\n", processCount, i);
     }
 }
-void logEvent(int time, int pid, const char *state, int arrival, int total, int remain, int wait, float TA, float WTA) {
+void logEvent(int time, int pid, const char *state, int arrival, int total, int remain, int wait, float TA, float WTA)
+{
     FILE *log = fopen("scheduler.log", "a");
-    if (log) {
-        if (strcmp(state, "finished") == 0) {
+    if (log)
+    {
+        if (strcmp(state, "finished") == 0)
+        {
             fprintf(log, "At time %d process %d %s arr %d total %d remain %d wait %d TA %.0f WTA %.2f\n",
                     time, pid, state, arrival, total, remain, wait, TA, WTA);
-        } else {
+        }
+        else
+        {
             fprintf(log, "At time %d process %d %s arr %d total %d remain %d wait %d\n",
                     time, pid, state, arrival, total, remain, wait);
         }
