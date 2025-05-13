@@ -68,16 +68,16 @@ void runHPF(int ProcessesCount) {
             if (!block) {
                 printf("HPF: Not enough memory for process %d, adding to waiting queue\n", nmsg.msg.id);
                 insertMinHeap_HPF(waitingQueue, nmsg.msg);
-                logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime, 
-                         nmsg.msg.runningtime, nmsg.msg.runningtime, 0, 0, 0);
-                receivedProcesses++;
+                // logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime, 
+                //          nmsg.msg.runningtime, nmsg.msg.runningtime, 0, 0, 0);
+                // receivedProcesses++;
             } else {
                 printf("HPF: Successfully allocated memory for process %d\n", nmsg.msg.id);
                 printMemoryState(memoryAllocator);
                 insertMinHeap_HPF(readyQueue, nmsg.msg);
-                logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime, 
-                         nmsg.msg.runningtime, nmsg.msg.runningtime, 0, 0, 0);
-                receivedProcesses++;
+                // logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime, 
+                //          nmsg.msg.runningtime, nmsg.msg.runningtime, 0, 0, 0);
+                // receivedProcesses++;
             }
         }
 
