@@ -80,9 +80,9 @@ void runSRTN(int ProcessesCount)
                 insertMinHeap_SRTN(waitingQueue, nmsg.msg);
 
                 // Log that the process is waiting for memory
-                logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime,
-                         nmsg.msg.runningtime, nmsg.msg.remainingtime,
-                         0, 0, 0.0);
+                // logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime,
+                //          nmsg.msg.runningtime, nmsg.msg.remainingtime,
+                //          0, 0, 0.0);
 
                 receivedProcesses++;
             }
@@ -95,9 +95,9 @@ void runSRTN(int ProcessesCount)
 
                 insertMinHeap_SRTN(readyQueue, nmsg.msg);
                 receivedProcesses++;
-                logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime,
-                         nmsg.msg.runningtime, nmsg.msg.remainingtime,
-                         0, 0, 0.0);
+                // logEvent(nmsg.msg.arrivaltime, nmsg.msg.id, "arrived", nmsg.msg.arrivaltime,
+                //          nmsg.msg.runningtime, nmsg.msg.remainingtime,
+                //          0, 0, 0.0);
             }
         }
 
