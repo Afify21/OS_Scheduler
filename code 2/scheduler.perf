@@ -1,5 +1,5 @@
-CPU Util=97.30%
-Avg TA=20.57
-Avg WTA=4.01
-Std WTA=2.10
-Avg Wait=15.43
+CPU Util=100.00%
+Avg TA=21.78
+Avg WTA=3.42
+Std WTA=1.40
+Avg Wait=15.67

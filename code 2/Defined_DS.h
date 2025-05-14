@@ -15,9 +15,9 @@ typedef struct MemoryBlock
 
 typedef struct BuddyAllocator
 {
-    MemoryBlock *memory_list;
-    int total_size;
-    FILE *memory_log;
+    MemoryBlock *memory_list; // linked list of the memory block
+    int total_size;           // Total memory available.
+    FILE *memory_log;         // File to log memory operations.
 } BuddyAllocator;
 
 // Initialize buddy allocator
@@ -46,6 +46,8 @@ int getNextPowerOf2(int size)
     // For simplicity, we'll just use fixed sizes
     // For sizes between 1-128, allocate 128 bytes
     // For sizes between 129-256, allocate 256 bytes
+    if (size <= 64)
+        return 64;
     if (size <= 128)
         return 128;
     else
@@ -69,7 +71,11 @@ void printMemoryState(BuddyAllocator *allocator)
     printf("=======================\n");
 }
 
-// Allocate memory
+// Checks if the process already owns a block — frees it if so.
+// Searches for a suitable free block:
+// Exact match? → Allocate it.
+// Larger block? → Recursively split it in half until the size matches
+//  Allocate memory
 MemoryBlock *allocateMemory(BuddyAllocator *allocator, int size, int process_id)
 {
     // Check if this process already has memory allocated
@@ -185,13 +191,17 @@ bool areBuddies(MemoryBlock *block1, MemoryBlock *block2)
     if (!block1 || !block2)
         return false;
     if (block1->size != block2->size)
-        return false;
+        return false; // buddies must be the same size
 
-    // Check if blocks are properly aligned buddies
-    return (block1->start_address ^ block2->start_address) == block1->size;
+    // Check if blocks are properly aligned buddies so they can merge
+    return (block1->start_address ^ block2->start_address) == block1->size; // XOR: 0 ^ 128 = 128 → they are buddies
 }
 
 // Free memory
+// Marks the block as free and logs it.
+// Looks for a "buddy" block (same size, adjacent, and free).//
+// If buddies are found → merge them and repeat.
+// Verifies that the block has been properly freed.
 void freeMemory(BuddyAllocator *allocator, MemoryBlock *block, int process_id)
 {
     if (!block)
