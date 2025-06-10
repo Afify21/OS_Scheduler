@@ -1,0 +1,7 @@
+Type the following in the cmd
+1)cd 'code 2'
+2)make
+3)./process_generator.out processes.txt
+
+Results and Statistics are shown in scheduler.perf, scheduler.log
+& memory.log.
